@@ -19,7 +19,7 @@ local scene = composer.newScene()
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 physics = require("physics")
---physics.setDrawMode("hybrid")
+physics.setDrawMode("hybrid")
 physics.start()
 physics.pause()
 
@@ -35,6 +35,9 @@ local rightBarrier
 local faces = {}
 local mask
 local ball
+local time = 0
+local isPressingRightTouch = false
+local isPressingLeftTouch = false
 
 --touchButtons
 local touchRight
@@ -95,26 +98,24 @@ function scene:create( event )
     physics.addBody(mask,"dynamic",{outline=maskOutline, bounce=0,density=1.2})
     mask.gravityScale = 5
     mask.isFixedRotation = true
+    mask.speedX = 1000
 
     topBarrier = display.newRect(fg,0,0,display.contentWidth,1)
-	physics.addBody(topBarrier,"static",{bounce=0.2,friction=.8,density=1.5})
+	physics.addBody(topBarrier,"static",{bounce=0,friction=0,density=1.5})
 	
 	-- Create a left barrier to prevent the smile from exiting the display
 	-- and add a static body to it
 	leftBarrier = display.newRect(fg,0,0,1,display.contentHeight)
-	physics.addBody(leftBarrier,"static",{bounce=0,friction=.8,density=1.5})
+	physics.addBody(leftBarrier,"static",{bounce=0,friction=0,density=1.5})
 	
 	-- Create a  right barrier to prevent the smile from exiting the display
 	-- and add a static body to it
 	rightBarrier = display.newRect(fg,0,0,1,display.contentHeight)
-    physics.addBody(rightBarrier,"static",{friction=.8,density=1.5})
-    ball = display.newCircle(0,0,50)
+    physics.addBody(rightBarrier,"static",{friction=0,density=1.5})
+    ball = display.newCircle(0,0,50)  
 
-    
-    
-    ball.x = display.contentCenterX 
-    ball.y = display.contentCenterY
     ball:setFillColor(1,0,0)
+    
     physics.addBody(ball,"dynamic", {radius=50, bounce = 1} )
     --touchRight = display.newRect(touch, 0, 0, display.contentCenterX, display.contentHeight-200)
     touchRight = display.newImageRect(fg, "img/transparent.png", display.contentWidth/2,display.contentHeight)
@@ -144,8 +145,42 @@ function scene:create( event )
  
 end
 
+local function moveMaskRight(event)
+    -- select the arrow touched	
+    local button=event.target
+    
+    -- if the touch event has just started...
+    if event.phase=="began" then
+        
+        -- ... and arrowUp has been touched
+        print("pressed")
+        isPressingRightTouch = true
+     -- if the touch event ended (i.e. the arrow has been released)...   
+     elseif event.phase=="ended" then
+              -- ... just set to 0 the ball speed 
+        isPressingRightTouch = false
+     end
+     return true
+ end
 
-local function moveMask(event)
+local function moveMaskLeft(event)
+    -- select the arrow touched	
+    local button=event.target
+    
+    -- if the touch event has just started...
+    if event.phase=="began" then
+        print("pressed")
+        isPressingLeftTouch = true
+     -- if the touch event ended (i.e. the arrow has been released)...   
+     elseif event.phase=="ended" then
+              -- ... just set to 0 the ball speed 
+        isPressingLeftTouch = false
+     end
+     return true
+
+ end
+ 
+ local function moveMask(event)
     -- select the arrow touched	
     local button=event.target
     
@@ -154,6 +189,7 @@ local function moveMask(event)
         
         -- ... and arrowUp has been touched
         if button.name=="right" then
+            isPressingRightTouch = true
             print("pressed")
               -- ... set the ball speed equal to -50 pixels per second 
               -- (the ball direction points upwards)
@@ -164,6 +200,7 @@ local function moveMask(event)
               
          -- ... and arrowDown has been touched		 
         elseif button.name=="left" then
+            isPressingLeftTouch = true
               -- ... set the ball speed equal to 50 pixels per second 
               -- (the ball direction points downwards)
               mask:setLinearVelocity(-1000,0)
@@ -171,10 +208,52 @@ local function moveMask(event)
      -- if the touch event ended (i.e. the arrow has been released)...   
      elseif event.phase=="ended" then
               -- ... just set to 0 the ball speed 
+            if button.name=="right" then
+                isPressingRightTouch = false
+            else
+                isPressingLeftTouch = false
+            end
             mask:setLinearVelocity(0,0)
      end
      return true
- end	
+ end
+
+ local function update(event)
+    if (isPressingLeftTouch or isPressingRightTouch)then
+        print("si muove")
+    else
+        mask:setLinearVelocity(0,0)
+    end
+    return true
+end
+    
+
+ local function moveMask2(event)
+
+   
+    local deltaTime = (event.time-time)/1000
+    time = event.time
+
+    if isPressingRightTouch then
+        print(isPressingRightTouch)
+        if (mask.x > display.contentWidth - mask.width) then
+            mask.x = display.contentWidth - mask.width
+        else
+            mask.x = mask.x + mask.speedX*deltaTime
+        end
+    end
+
+    if isPressingLeftTouch then
+        if (mask.x < mask.width) then
+            mask.x = mask.width
+        else
+            mask.x = mask.x - mask.speedX*deltaTime
+        end
+        
+    end
+
+    -- move the ball  	
+ end
   
 
 
@@ -233,6 +312,9 @@ function scene:show( event )
         print( "did")	
         touchRight:addEventListener("touch",moveMask)
         touchLeft:addEventListener("touch",moveMask)
+        --touchRight:addEventListener("touch", moveMaskRight)
+        --touchLeft:addEventListener("touch", moveMaskLeft)
+        Runtime:addEventListener("enterFrame", update)
  
     end
 end
