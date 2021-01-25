@@ -38,6 +38,8 @@ local textMusicState
 local textGameModeState
 
 
+local gameMode = "touch"
+
 local playButtonSheet = graphics.newImageSheet( "img/ui/button-play.png", utils:optionsRectangularButtons() )
 local infoButtonSheet = graphics.newImageSheet( "img/ui/button-info.png", utils:optionsRoundedButtons() )
 local scoresButtonSheet = graphics.newImageSheet( "img/ui/button-scores.png", utils:optionsRoundedButtons() )
@@ -53,6 +55,7 @@ local function handleButtonEvent( event )
 end	
 
 local function handleButtonPlay( event )
+	composer.setVariable( "gameMode", gameMode )
 	composer.gotoScene("game", {
 		effect = "fade",
 		time = 400
@@ -74,8 +77,10 @@ local function onGameModePress( event )
 	local switch = event.target
     if switch.isOn then
 		textGameModeState.text = "Game mode: touch"
+		gameMode = "touch"
 	else
 		textGameModeState.text = "Game mode: tilt"
+		gameMode = "tilt"
 	end
     --print( "Switch with ID '"..switch.id.."' is on: "..tostring(switch.isOn) )
 end
@@ -153,18 +158,6 @@ function scene:create( event )
  
 end
 
--- this function shoot the smile by applying a force to its center
--- whose x-component is xForce and y-component is yForce
-
-
------------------------------------------------------------------------------------
--- drawLine is a function listener for the touch event. It generates a segment 
--- from the center of the smile object to the current touched point on the
--- display. When the touch event ends, the segment is removed and function 
--- shoot is executed with values for  xForce and yForce that are equal to 
--- the x and y components of the last segment drawn. 
------------------------------------------------------------------------------------
-  
 
 
 -- show()
@@ -234,7 +227,7 @@ function scene:destroy( event )
  
     local sceneGroup = self.view
     -- Code here runs prior to the removal of scene's view
-	buttonisGameModeTouch:removeSelf()
+	--buttonisGameModeTouch:removeSelf()
 end
  
 ---------------------------------------

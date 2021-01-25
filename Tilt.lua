@@ -45,7 +45,9 @@ local totalInfected = 0
 local healed = 0
 local goneToHospital = 0
 
-
+local textGravity
+local textInstant
+local prevTilt = 0
 -- * touchButtons
 local touchRight
 local touchLeft
@@ -129,10 +131,8 @@ function scene:create( event )
     for i = 0,6 do 
         local face = display.newSprite(fg, faceSheet, faceSequence)
         face.name = "face"
-        face.isAlive = true
         face.isActive = true
-        local triangleShape = { -70,50, 70,50, 70,-50, -70,-50 }
-        physics.addBody(face, "static", {shape = triangleShape, bounce=1, friction=.8, density=1.5, filter=utils:faceFilter() })
+        physics.addBody(face, "static", {bounce=1, friction=.8, density=1.5, filter=utils:faceFilter() })
         table.insert(faces, face)
     end
 
@@ -247,15 +247,7 @@ local function update(event)
     return true
 end
 
-function scene:startScreen()
-    print("qui")
-    composer.gotoScene("startScreen")
-    --composer.removeScene("instructions")
-end
-
-function scene:startGame()
-    
-    physics.start()
+local function startGame()
     ball:applyForce(math.random(-100, 100),math.random(1, 100),ball.x, ball.y)
     gameStarted = true
     canUpdateTime = true
@@ -281,13 +273,13 @@ local function onLocalCollisionFace(self, event )
     local face = self
     --print(face.isActive)
     if ( event.phase == "began" ) then
-        if (face.isAlive and event.other.name ~= nil and event.other.name == "ball") then
+        if (event.other.name ~= nil and event.other.name == "ball") then
             if face.isActive then
                 face.isActive = false
                 totalInfected = totalInfected + 1
                 face:play()
                 local deactivate = function() return deactivateFace( face ) end
-                timer.performWithDelay( 0.1, deactivate )
+                timer.performWithDelay( 700, deactivate )
             end
         end
     end
@@ -297,48 +289,54 @@ local function deactivateBall(ball)
     ball.bodyType = "static"
     ball.isActive = false
     ball.alpha = 0
+
+    for index,face in ipairs(faces) do
+        if (face.isActive == false) then
+            face.isActive = true
+            face.alpha = 1
+            face:setFrame(1)
+            return true
+        end
+    end
     --cambiare posizione?
 end
 
-local function sensorCollisionHospital(self, event )
+local function sensorCollision(self, event )
     if ( event.phase == "began" ) then
-        self:play()
-        event.other:removeSelf()
-        goneToHospital = goneToHospital + 1
-        for index,face in ipairs(faces) do
-            if (face.isActive == false and face.isAlive) then
-                face.isAlive = false
-                face.alpha = 0
-                return true
-            end
+        if (self.name == "hospital") then
+            self:play()
+            event.other:removeSelf()
+            goneToHospital = goneToHospital + 1
+        elseif (self.name == "heart") then
+            self:play()
+            print("collision")
+            healed = healed + 1
+            local deactivate = function() return deactivateBall( event.other ) end
+            timer.performWithDelay( 20, deactivate )
         end
-    end
-end
-
-local function sensorCollisionHeart(self, event )
-    if ( event.phase == "began" ) then
-        self:play()
-        healed = healed + 1
-        local deactivate = function() return deactivateBall( event.other ) end
-        timer.performWithDelay( 0.1, deactivate )
-        for index,face in ipairs(faces) do
-            if (face.isActive == false and face.isAlive) then
-                face.isActive = true
-                face.alpha = 1
-                face:setFrame(1)
-                return true
-            end
-        end
+        print(event.other.name)
+        print(self.name)
     end
 end
 
 local function onTilt( event )
+   -- xGravityTxt.text = "xGravity: "..event.xGravity
+    --yGravityTxt.text = "yGravity: "..event.yGravity
+    --zGravityTxt.text = "zGravity: "..event.zGravity
+    --xInstantTxt.text = "xInstant: "..event.xInstant
+    --yInstantTxt.text = "yInstant: "..event.yInstant
+    --zInstantTxt.text = "zInstant: "..event.zInstant
+    --local v = prevTilt - xGravity
+    --prevTilt = xG
+    mask:setLinearVelocity(event.xInstant*10000,0)
+    textInstant.text = event.xInstant
+    textGravity.text = event.xGravity
+    --mask.x = display.contentCenterX+display.contentCenterX*event.xInstant
+    --dot.x = display.contentCenterX+display.contentCenterX*event.xGravity
+    --dot.y = display.contentCenterY+display.contentCenterY*event.yGravity
 
-     mask:setLinearVelocity(event.xInstant*10000,0)
-     --textInstant.text = event.xInstant
-     --textGravity.text = event.xGravity
-     return true
- end
+    return true
+end
 
 -- show()
 function scene:show( event )
@@ -388,9 +386,12 @@ function scene:show( event )
         textTimeLeft = display.newText(fg, formatTime(), display.contentCenterX, 400, "font/Rubik-Light.ttf", 180 )
         textTimeLeft.alpha = 0.5
 
-        touchRight.x = display.contentCenterX + display.contentCenterX/2 +2
+        textGravity = display.newText(fg, "-6t87t", display.contentCenterX, 600, "font/Rubik-Light.ttf", 100 )
+        textInstant = display.newText(fg, "-6t87t", display.contentCenterX, 800, "font/Rubik-Light.ttf", 100 )
+
+        touchRight.x = display.contentCenterX + display.contentCenterX/2
         touchRight.y = display.contentCenterY+200
-        touchLeft.x = display.contentCenterX/2 -2
+        touchLeft.x = display.contentCenterX - display.contentCenterX/2
         touchLeft.y = display.contentCenterY+200
         
         buttonMenu.x = display.contentCenterX
@@ -402,23 +403,16 @@ function scene:show( event )
     elseif ( phase == "did" ) then
         -- Start the physics engine
         --non funziona
-        
+        physics.start()
         --face:play()
-        local gameMode = composer.getVariable( "gameMode" )
-        print(gameMode)
-        if(gameMode == "touch")then
-            print("touch mode")
-            touchRight:addEventListener("touch",moveMaskRight)
-            touchLeft:addEventListener("touch",moveMaskLeft)
-        elseif(gameMode == "tilt")then
-            print("tilt mode")
-            Runtime:addEventListener( "accelerometer", onTilt )
-        end
+        print( "did")	
+        --touchRight:addEventListener("touch",moveMaskRight)
+        --touchLeft:addEventListener("touch",moveMaskLeft)
 
-        heart.collision = sensorCollisionHeart
+        heart.collision = sensorCollision
         heart:addEventListener( "collision" )
 
-        hospital.collision = sensorCollisionHospital
+        hospital.collision = sensorCollision
         hospital:addEventListener( "collision" )
 
         for index,face in ipairs(faces) do
@@ -427,12 +421,9 @@ function scene:show( event )
         end
 
         Runtime:addEventListener("enterFrame", update)
-
-        composer.showOverlay("instructions", {
-            effect = "fade",
-            time = 200
-        })
-        --startGame()
+         
+        Runtime:addEventListener( "accelerometer", onTilt )
+        startGame()
  
     end
 end
