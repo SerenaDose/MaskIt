@@ -8,6 +8,7 @@
 -- Load the composer library 
 local composer = require( "composer" )
 local widget = require( "widget" )
+local utils = require("utils")
  
 -- define a new Scene 
 local scene = composer.newScene()
@@ -36,32 +37,12 @@ local fonSize = 40
 local textMusicState
 local textGameModeState
 
-local optionsRectangularButtons = {
-	width = 573,
-    height = 261,
-    numFrames = 2,
-}
 
-local optionsRoundedButtons = {
-	width = 119,
-    height = 119,
-    numFrames = 2,
-}
-
-local optionsChecboxButton = {
-    width = 100,
-    height = 100,
-    numFrames = 2,
-    sheetContentWidth = 200,
-    sheetContentHeight = 100
-}
-
-
-local playButtonSheet = graphics.newImageSheet( "img/ui/button-play.png", optionsRectangularButtons )
-local infoButtonSheet = graphics.newImageSheet( "img/ui/button-info.png", optionsRoundedButtons )
-local scoresButtonSheet = graphics.newImageSheet( "img/ui/button-scores.png", optionsRoundedButtons )
-local musicButtonSheet = graphics.newImageSheet( "img/ui/button-sound.png", optionsChecboxButton )
-local gameModeButtonSheet = graphics.newImageSheet( "img/ui/button-gameMode.png", optionsChecboxButton )
+local playButtonSheet = graphics.newImageSheet( "img/ui/button-play.png", utils:optionsRectangularButtons() )
+local infoButtonSheet = graphics.newImageSheet( "img/ui/button-info.png", utils:optionsRoundedButtons() )
+local scoresButtonSheet = graphics.newImageSheet( "img/ui/button-scores.png", utils:optionsRoundedButtons() )
+local musicButtonSheet = graphics.newImageSheet( "img/ui/button-sound.png", utils:optionsChecboxButton() )
+local gameModeButtonSheet = graphics.newImageSheet( "img/ui/button-gameMode.png", utils:optionsChecboxButton() )
  
 -- -----------------------------------------------------------------------------------
 -- Scene event functions

@@ -1,57 +1,61 @@
 -----------------------------------------------------------------------------------------
 --
--- angry smyleys -- game scene
+-- MaskIt -- game scene
 --
 -----------------------------------------------------------------------------------------
 
 
--- Load the composer library 
 local composer = require( "composer" )
 local widget = require( "widget" )
+local utils = require("utils")
  
--- define a new Scene 
 local scene = composer.newScene()
  
-
-
--- -----------------------------------------------------------------------------------
--- Code outside of the scene event functions below will only be executed ONCE unless
--- the scene is removed entirely (not recycled) via "composer.removeScene()"
--- -----------------------------------------------------------------------------------
 physics = require("physics")
-physics.setDrawMode("hybrid")
+--physics.setDrawMode("hybrid")
 physics.start()
 physics.pause()
 
+-- * dislay groups
 bg = display.newGroup()  -- group of foreground elements
 fg = display.newGroup()  -- group of background elements
 touch = display.newGroup()
 
-
 local background
+-- * barriere
 local topBarrier
 local leftBarrier
 local rightBarrier
+
+-- * elementi di gioco
 local faces = {}
 local mask
+local maskY
 local ball
-local time = 0
+local balls = {}
+local heart
+local hospital
+local textTimeLeft
+
+-- * variabili di gioco
+local gameStarted = false
+local timeLeft = 120
+local canUpdateTime = false
+local totalInfected = 0
+local healed = 0
+local goneToHospital = 0
+
+
+-- * touchButtons
+local touchRight
+local touchLeft
 local isPressingRightTouch = false
 local isPressingLeftTouch = false
 
---touchButtons
-local touchRight
-local touchLeft
-
---ui
+-- * ui
 local buttonMenu
 
 
-local optionsRoundedButtons = {
-	width = 119,
-    height = 121,
-    numFrames = 2,
-}
 local optionsFace = {
 	width = 145,
     height = 146,
@@ -65,10 +69,25 @@ local faceSequence = {
     loopDirection = "forward",
     time = 400
 }
+local optionsBM = {
+	width = 125,
+    height = 125,
+    numFrames = 4,
+}
+local BMSequence = {
+    count = 4, 
+    start = 1,
+    --name = "infected",
+    loopCount = 3,
+    loopDirection = "forward",
+    time = 400
+}
 
-local menuButtonSheet = graphics.newImageSheet( "img/ui/button-menu.png", optionsRoundedButtons )
+local menuButtonSheet = graphics.newImageSheet( "img/ui/button-menu.png", utils:optionsRoundedButtons() )
 local faceSheet = graphics.newImageSheet( "img/face.png", optionsFace )
- 
+local heartSheet = graphics.newImageSheet( "img/heart.png", optionsBM )
+local hospitalSheet = graphics.newImageSheet( "img/hospital.png", optionsBM )
+
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
@@ -78,54 +97,75 @@ local function handleButtonEvent( event )
     print( "Button was pressed and released" )
 end	
 
--- create()
+
 function scene:create( event )
  
     local sceneGroup = self.view
-    -- Here we create the graphics element of the game
 	
-	-- Load the background image
     background = display.newImageRect(bg, "bg.png", 1180, 2020)
 
+    -- * barriere
+    topBarrier = display.newRect(fg,0,0,display.contentWidth,1)
+	physics.addBody(topBarrier,"static",{ bounce=1, friction=0, density=1.5, filter=utils:barrierFilter()})
+
+	leftBarrier = display.newRect(fg,0,0,1,display.contentHeight)
+	physics.addBody(leftBarrier,"static",{ bounce=1, friction=0, density=1.5, filter=utils:barrierFilter()})
+
+	rightBarrier = display.newRect(fg,0,0,1,display.contentHeight)
+    physics.addBody(rightBarrier,"static",{ friction=1, density=1.5, filter=utils:barrierFilter()})
+
+    -- * elementi di gioco
+
+    --heart = display.newImageRect(fg, "img/heart.png", 125, 117)
+    heart = display.newSprite(fg, heartSheet, BMSequence)
+    heart.name = "heart"
+    physics.addBody( heart, "static", { isSensor=true, filter=utils:bmFilter() })
+
+    --hospital = display.newImageRect(fg, "img/hospital.png", 121, 121)
+    hospital = display.newSprite(fg, hospitalSheet, BMSequence)
+    hospital.name = "hospital"
+    physics.addBody( hospital, "static", { isSensor=true, filter=utils:bmFilter() })
+    --inizializzazione smiles
     for i = 0,6 do 
         local face = display.newSprite(fg, faceSheet, faceSequence)
-        physics.addBody(face,"static",{bounce=0.2,friction=.8,density=1.5})
+        face.name = "face"
+        face.isActive = true
+        physics.addBody(face, "static", {bounce=1, friction=.8, density=1.5, filter=utils:faceFilter() })
         table.insert(faces, face)
     end
-    local maskOutline = graphics.newOutline(1,"img/mask.png")
 
-    mask = display.newImageRect(bg, "img/mask.png", 161, 53)
-    physics.addBody(mask,"dynamic",{outline=maskOutline, bounce=0,density=1.2})
+    for i = 0,6 do 
+        local ball = display.newImageRect(fg, "img/virus.png", 80, 80)
+        ball.name = "ball"
+        --ball.isActive = false
+        physics.addBody(ball,"static",{radius=50,bounce=0.5, filter=utils:ballFilter()})
+        ball.isVisible = false
+        table.insert(balls, ball)
+    end
+
+    local maskOutline = graphics.newOutline(1,"img/mask.png")
+    mask = display.newImageRect(fg, "img/mask.png", 161, 53)
+    physics.addBody(mask,"dynamic",{outline=maskOutline, bounce=0,density=1.2, filter=utils:maskFilter()})
     mask.gravityScale = 5
     mask.isFixedRotation = true
     mask.speedX = 1000
-
-    topBarrier = display.newRect(fg,0,0,display.contentWidth,1)
-	physics.addBody(topBarrier,"static",{bounce=0,friction=0,density=1.5})
-	
-	-- Create a left barrier to prevent the smile from exiting the display
-	-- and add a static body to it
-	leftBarrier = display.newRect(fg,0,0,1,display.contentHeight)
-	physics.addBody(leftBarrier,"static",{bounce=0,friction=0,density=1.5})
-	
-	-- Create a  right barrier to prevent the smile from exiting the display
-	-- and add a static body to it
-	rightBarrier = display.newRect(fg,0,0,1,display.contentHeight)
-    physics.addBody(rightBarrier,"static",{friction=0,density=1.5})
-    ball = display.newCircle(0,0,50)  
-
-    ball:setFillColor(1,0,0)
     
-    physics.addBody(ball,"dynamic", {radius=50, bounce = 1} )
-    --touchRight = display.newRect(touch, 0, 0, display.contentCenterX, display.contentHeight-200)
+    --ball = display.newCircle(fg,0,0,50)  
+    --ball:setFillColor(1,0,0)
+    ball = display.newImageRect(fg, "img/virus.png", 100, 100)   
+    ball.name = "ball"
+    physics.addBody(ball,"dynamic", {radius=50, bounce = 1, filter=utils:virusFilter()} )
+
+
+
+    -- * touch
     touchRight = display.newImageRect(fg, "img/transparent.png", display.contentWidth/2,display.contentHeight)
     touchLeft = display.newImageRect(fg, "img/transparent.png", display.contentWidth/2,display.contentHeight)
 
-    --touchRight:setFillColor(1,0,0)
-    --touchRight.alpha = 0
     touchRight.name = "right"
     touchLeft.name = "left"
 
+    -- * UI
     buttonMenu = widget.newButton(
         {
             sheet = menuButtonSheet,
@@ -135,126 +175,139 @@ function scene:create( event )
         }
     )
     fg:insert(buttonMenu)
+    buttonMenu:toFront()
 	
-    sceneGroup:insert(bg)
-    
+    sceneGroup:insert(bg)   
     sceneGroup:insert(fg)
     sceneGroup:insert(buttonMenu)
     sceneGroup:insert(touch)
 
- 
 end
-
+ 
 local function moveMaskRight(event)
-    -- select the arrow touched	
-    local button=event.target
-    
-    -- if the touch event has just started...
     if event.phase=="began" then
-        
-        -- ... and arrowUp has been touched
-        print("pressed")
         isPressingRightTouch = true
-     -- if the touch event ended (i.e. the arrow has been released)...   
-     elseif event.phase=="ended" then
-              -- ... just set to 0 the ball speed 
+        mask:setLinearVelocity(1000,0)
+    elseif event.phase=="ended" then
         isPressingRightTouch = false
      end
      return true
- end
+end
 
 local function moveMaskLeft(event)
-    -- select the arrow touched	
-    local button=event.target
-    
-    -- if the touch event has just started...
     if event.phase=="began" then
-        print("pressed")
         isPressingLeftTouch = true
-     -- if the touch event ended (i.e. the arrow has been released)...   
+        mask:setLinearVelocity(-1000,0)
+                --mask:applyForce( 500, 0, mask.x-2, mask.y )	 
      elseif event.phase=="ended" then
-              -- ... just set to 0 the ball speed 
         isPressingLeftTouch = false
      end
      return true
+end
 
- end
- 
- local function moveMask(event)
-    -- select the arrow touched	
-    local button=event.target
-    
-    -- if the touch event has just started...
-    if event.phase=="began" then
-        
-        -- ... and arrowUp has been touched
-        if button.name=="right" then
-            isPressingRightTouch = true
-            print("pressed")
-              -- ... set the ball speed equal to -50 pixels per second 
-              -- (the ball direction points upwards)
+local function formatTime()
+    local minutes = math.floor( timeLeft / 60 )
+    local seconds = timeLeft % 60
+    -- Make it a formatted string
+    return string.format( "%02d:%02d", minutes, seconds )
+end
 
-            mask:setLinearVelocity(1000,0)
-                --mask:applyForce( 500, 0, mask.x-2, mask.y )
+local function updateTime()
+    timeLeft = timeLeft-1
+    textTimeLeft.text = formatTime()
+    canUpdateTime = true
+end
 
-              
-         -- ... and arrowDown has been touched		 
-        elseif button.name=="left" then
-            isPressingLeftTouch = true
-              -- ... set the ball speed equal to 50 pixels per second 
-              -- (the ball direction points downwards)
-              mask:setLinearVelocity(-1000,0)
+local function update(event)
+    if gameStarted then
+        if (timeLeft<0)then
+            --print("gioco finito")
         end
-     -- if the touch event ended (i.e. the arrow has been released)...   
-     elseif event.phase=="ended" then
-              -- ... just set to 0 the ball speed 
-            if button.name=="right" then
-                isPressingRightTouch = false
-            else
-                isPressingLeftTouch = false
-            end
-            mask:setLinearVelocity(0,0)
-     end
-     return true
- end
+        if canUpdateTime then
+            timer.performWithDelay(1000, updateTime)
+            canUpdateTime = false
+        end
+    end
 
- local function update(event)
-    if (isPressingLeftTouch or isPressingRightTouch)then
-        print("si muove")
-    else
+    if (isPressingLeftTouch==false and isPressingRightTouch==false)then
         mask:setLinearVelocity(0,0)
+    end
+    if(mask.y>maskY)then
+        mask.y = maskY
     end
     return true
 end
-    
 
- local function moveMask2(event)
+local function startGame()
+    ball:applyForce(math.random(-100, 100),math.random(1, 100),ball.x, ball.y)
+    gameStarted = true
+    canUpdateTime = true
+end
 
-   
-    local deltaTime = (event.time-time)/1000
-    time = event.time
-
-    if isPressingRightTouch then
-        print(isPressingRightTouch)
-        if (mask.x > display.contentWidth - mask.width) then
-            mask.x = display.contentWidth - mask.width
-        else
-            mask.x = mask.x + mask.speedX*deltaTime
+local function deactivateFace(face)
+    face.alpha = 0.5
+    for index,ball in ipairs(balls) do
+        if (ball.isVisible == false) then
+            print("hit")
+            ball.isVisible = true
+            ball.y = display.contentCenterY-500
+            ball.x = face.x
+            ball.bodyType= "dynamic"
+            ball:applyForce(math.random(-1000, 1000),math.random(1, 1000),ball.x, ball.y)
+            return true
         end
     end
+end
 
-    if isPressingLeftTouch then
-        if (mask.x < mask.width) then
-            mask.x = mask.width
-        else
-            mask.x = mask.x - mask.speedX*deltaTime
+local function onLocalCollisionFace(self, event )
+    --print("collision")
+    local face = self
+    print(face.isActive)
+    if ( event.phase == "began" ) then
+        if (event.other.name ~= nil and event.other.name == "ball") then
+            if face.isActive then
+                face.isActive = false
+                totalInfected = totalInfected + 1
+                face:play()
+                local deactivate = function() return deactivateFace( face ) end
+                timer.performWithDelay( 700, deactivate )
+            end
         end
-        
     end
+end
 
-    -- move the ball  	
- end
-  
+local function deactivateBall(ball)
+    ball.bodyType = "static"
+    ball.isActive = false
+    ball.alpha = 0
+
+    for index,face in ipairs(faces) do
+        if (face.isActive == false) then
+            face.isActive = true
+            face.alpha = 1
+            return true
+        end
+    end
+    --cambiare posizione?
+end
+
+local function sensorCollision(self, event )
+    if ( event.phase == "began" ) then
+        if (self.name == "hospital") then
+            self:play()
+            event.other:removeSelf()
+            goneToHospital = goneToHospital + 1
+        elseif (self.name == "heart") then
+            self:play()
+            print("collision")
+            healed = healed + 1
+            local deactivate = function() return deactivateBall( event.other ) end
+            timer.performWithDelay( 20, deactivate )
+        end
+        print(event.other.name)
+        print(self.name)
+    end
+end
 
 
 -- show()
@@ -269,14 +322,10 @@ function scene:show( event )
 		topBarrier.y=0
 		topBarrier.alpha=0
 		
-		-- place the top barrier at the left border of the display
-		-- and make it transparent
 		leftBarrier.x=0
 		leftBarrier.y=display.contentCenterY
 		leftBarrier.alpha=0
 		
-		-- place the right barrier at the right border of the display
-		-- and make it transparent
 		rightBarrier.x=display.contentWidth
 		rightBarrier.y=display.contentCenterY
         rightBarrier.alpha=0
@@ -284,18 +333,30 @@ function scene:show( event )
 		background.x = display.contentCenterX
         background.y = display.contentCenterY
 
-        --face.x = display.contentCenterX
-        --face.y = display.contentCenterY
         for index,face in ipairs(faces) do
             face.x = (index-1)*150 + 90
             face.y = display.contentHeight - 75
         end
+        --for index,ball in ipairs(balls) do
+            --ball.x = display.contentCenterX
+            --ball.y = display.contentCenterY-500
+            --ball:applyForce(math.random(-100, 100),math.random(1, 100),ball.x, ball.y)
+        --end
 
         ball.x = display.contentCenterX 
-        ball.y = display.contentCenterY
+        ball.y = display.contentCenterY - 400
 
         mask.x = display.contentCenterX
-        mask.y = display.contentHeight - 190
+        maskY = display.contentHeight - 75 - faces[1].height/2 - mask.height/2
+        mask.y = maskY
+
+        heart.x = 105
+        heart.y = 68
+        hospital.x = display.contentWidth - 105
+        hospital.y = 64
+        
+        textTimeLeft = display.newText(fg, formatTime(), display.contentCenterX, 350, "font/CormorantGaramond-Regular.ttf", 250 )
+        textTimeLeft.alpha = 0.5
 
         touchRight.x = display.contentCenterX + display.contentCenterX/2
         touchRight.y = display.contentCenterY+200
@@ -304,17 +365,32 @@ function scene:show( event )
         
         buttonMenu.x = display.contentCenterX
         buttonMenu.y = 100
+
+        -- inizializzazione Variabili
+        
+
     elseif ( phase == "did" ) then
         -- Start the physics engine
         --non funziona
         physics.start()
         --face:play()
         print( "did")	
-        touchRight:addEventListener("touch",moveMask)
-        touchLeft:addEventListener("touch",moveMask)
-        --touchRight:addEventListener("touch", moveMaskRight)
-        --touchLeft:addEventListener("touch", moveMaskLeft)
+        touchRight:addEventListener("touch",moveMaskRight)
+        touchLeft:addEventListener("touch",moveMaskLeft)
+
+        heart.collision = sensorCollision
+        heart:addEventListener( "collision" )
+
+        hospital.collision = sensorCollision
+        hospital:addEventListener( "collision" )
+
+        for index,face in ipairs(faces) do
+            face.collision = onLocalCollisionFace
+            face:addEventListener( "collision" )
+        end
+
         Runtime:addEventListener("enterFrame", update)
+        startGame()
  
     end
 end
