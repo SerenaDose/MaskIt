@@ -54,9 +54,16 @@ local function handleButtonEvent( event )
     print( "Button was pressed and released" )
 end	
 
+local function handleButtonInfo( event )
+	composer.showOverlay("info", {
+		effect = "fade",
+		time = 200
+	})
+end	
+
 local function handleButtonPlay( event )
 	composer.setVariable( "gameMode", gameMode )
-	composer.gotoScene("game", {
+	composer.gotoScene("intro", {
 		effect = "fade",
 		time = 400
 	})
@@ -109,7 +116,7 @@ function scene:create( event )
 		sheet = infoButtonSheet,
 		defaultFrame = 1,
 		overFrame = 2,
-		onPress = handleButtonEvent
+		onPress = handleButtonInfo
 	}
 	)
 	buttonScores = widget.newButton(

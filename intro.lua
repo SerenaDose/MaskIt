@@ -6,18 +6,16 @@
 
 -- load the composer library
 local composer = require("composer")
-local widget = require( "widget" )
-local utils = require("utils")
 local scene = composer.newScene()
 local background
 local bg = display.newGroup()
 
-local buttonClose
-local closeButtonSheet = graphics.newImageSheet( "img/ui/button-close.png", utils:optionsRoundedButtons() )
 
-local function handleButtonEvent( event )
-    composer.hideOverlay( "fade", 400 )
-    print( "Button was pressed and released 2" )
+local function startGame( event )
+    composer.gotoScene("game", {
+		effect = "fade",
+		time = 400
+	})
 end	
 
 function scene:create( event )
@@ -26,20 +24,9 @@ function scene:create( event )
     -- Here we create the graphics element of the game
 	
 	-- Load the background image
-    background = display.newImageRect(bg,"img/instructions.png",1180,2020)
-    
-    buttonClose = widget.newButton(
-	{
-		sheet = closeButtonSheet,
-		defaultFrame = 1,
-		overFrame = 2,
-		onPress = handleButtonEvent
-	}
-	)
+    background = display.newImageRect(bg,"img/intro.png",1180,2020)
 	
-    sceneGroup:insert(bg)
-    sceneGroup:insert(buttonClose)
- 
+    sceneGroup:insert(bg) 
 end
 
 
@@ -53,16 +40,17 @@ function scene:show( event )
 	if ( phase == "will" ) then
 		background.x = display.contentCenterX
         background.y = display.contentCenterY
-        buttonClose.x = display.contentCenterX
-		buttonClose.y = display.contentHeight -200
 
+        composer.showOverlay("instructions", {
+            effect = "fade",
+            time = 1
+        })
     elseif ( phase == "did" ) then
 		-- Start the physics engine
-		--Non Funziona
-		--buttonMusic.onPress = onButtonMusicPress
-		--buttonisGameModeTouch.onPress = onSwitchPress
+
 		print( "did")	
- 
+        Runtime:addEventListener("touch",startGame)	
+        
     end
 end
 
@@ -74,11 +62,10 @@ function scene:hide( event )
     local phase = event.phase
  
     if ( phase == "will" ) then
-        local parent = event.parent
-        parent:startGame()
-        print("start game")
+
     elseif ( phase == "did" ) then
-		print( "did")
+        print( "did")
+        composer.removeScene("info")
  
     end
 end

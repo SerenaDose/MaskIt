@@ -109,7 +109,7 @@ function scene:create( event )
 	physics.addBody(topBarrier,"static",{ bounce=1, friction=0, density=1.5, filter=utils:barrierFilter()})
 
 	leftBarrier = display.newRect(fg,0,0,1,display.contentHeight)
-	physics.addBody(leftBarrier,"static",{ bounce=1, friction=0, density=1.5, filter=utils:barrierFilter()})
+	physics.addBody(leftBarrier,"static",{ bounce=0, friction=0, density=1.5, filter=utils:barrierFilter()})
 
 	rightBarrier = display.newRect(fg,0,0,1,display.contentHeight)
     physics.addBody(rightBarrier,"static",{ friction=1, density=1.5, filter=utils:barrierFilter()})
@@ -189,7 +189,7 @@ end
 local function moveMaskRight(event)
     if event.phase=="began" then
         isPressingRightTouch = true
-        mask:setLinearVelocity(1000,0)
+        mask:setLinearVelocity(2000,0)
     elseif event.phase=="ended" then
         isPressingRightTouch = false
      end
@@ -199,7 +199,7 @@ end
 local function moveMaskLeft(event)
     if event.phase=="began" then
         isPressingLeftTouch = true
-        mask:setLinearVelocity(-1000,0)
+        mask:setLinearVelocity(-2000,0)
                 --mask:applyForce( 500, 0, mask.x-2, mask.y )	 
      elseif event.phase=="ended" then
         isPressingLeftTouch = false
@@ -247,13 +247,7 @@ local function update(event)
     return true
 end
 
-function scene:startScreen()
-    print("qui")
-    composer.gotoScene("startScreen")
-    --composer.removeScene("instructions")
-end
-
-function scene:startGame()
+local function startGame()
     
     physics.start()
     ball:applyForce(math.random(-100, 100),math.random(1, 100),ball.x, ball.y)
@@ -428,11 +422,8 @@ function scene:show( event )
 
         Runtime:addEventListener("enterFrame", update)
 
-        composer.showOverlay("instructions", {
-            effect = "fade",
-            time = 200
-        })
-        --startGame()
+        
+        startGame()
  
     end
 end

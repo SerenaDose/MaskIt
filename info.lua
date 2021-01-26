@@ -26,7 +26,7 @@ function scene:create( event )
     -- Here we create the graphics element of the game
 	
 	-- Load the background image
-    background = display.newImageRect(bg,"img/instructions.png",1180,2020)
+    background = display.newImageRect(bg,"img/info.png",1180,2020)
     
     buttonClose = widget.newButton(
 	{
@@ -77,7 +77,7 @@ function scene:hide( event )
         --local parent = event.parent
         --parent:startGame()
     elseif ( phase == "did" ) then
-		print( "did")
+		--print( "did")
  
     end
 end
