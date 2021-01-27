@@ -55,6 +55,9 @@ local isPressingLeftTouch = false
 -- * ui
 local buttonMenu
 
+-- * music
+local bgMusic
+
 
 local optionsFace = {
 	width = 145,
@@ -92,8 +95,12 @@ local hospitalSheet = graphics.newImageSheet( "img/hospital.png", optionsBM )
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
 
-local function handleButtonEvent( event )
- 
+local function handleButtonMenu( event )
+    physics.pause()
+    composer.showOverlay("GameMenu", {
+        effect = "fromTop",
+        time = 1
+    })
     print( "Button was pressed and released" )
 end	
 
@@ -103,16 +110,16 @@ function scene:create( event )
     local sceneGroup = self.view
 	
     background = display.newImageRect(bg, "bg.png", 1180, 2020)
-
+print("game create")
     -- * barriere
     topBarrier = display.newRect(fg,0,0,display.contentWidth,1)
-	physics.addBody(topBarrier,"static",{ bounce=1, friction=0, density=1.5, filter=utils:barrierFilter()})
+	physics.addBody(topBarrier,"static",{ bounce=0, friction=0, density=1.5, filter=utils:barrierFilter()})
 
 	leftBarrier = display.newRect(fg,0,0,1,display.contentHeight)
 	physics.addBody(leftBarrier,"static",{ bounce=0, friction=0, density=1.5, filter=utils:barrierFilter()})
 
 	rightBarrier = display.newRect(fg,0,0,1,display.contentHeight)
-    physics.addBody(rightBarrier,"static",{ friction=1, density=1.5, filter=utils:barrierFilter()})
+    physics.addBody(rightBarrier,"static",{ bounce=0, friction=0, density=1.5, filter=utils:barrierFilter()})
 
     -- * elementi di gioco
 
@@ -128,19 +135,20 @@ function scene:create( event )
     --inizializzazione smiles
     for i = 0,6 do 
         local face = display.newSprite(fg, faceSheet, faceSequence)
-        face.name = "face"
+        face.name = "face"..i
         face.isAlive = true
         face.isActive = true
         local triangleShape = { -70,50, 70,50, 70,-50, -70,-50 }
-        physics.addBody(face, "static", {shape = triangleShape, bounce=1, friction=.8, density=1.5, filter=utils:faceFilter() })
+        physics.addBody(face, "static", {shape = triangleShape, bounce=0, friction=.8, density=1.5, filter=utils:faceFilter() })
         table.insert(faces, face)
     end
 
     for i = 0,6 do 
         local ball = display.newImageRect(fg, "img/virus.png", 80, 80)
         ball.name = "ball"
+        ball.gravityScale = 1
         --ball.isActive = false
-        physics.addBody(ball,"static",{radius=50,bounce=0.5, filter=utils:ballFilter()})
+        physics.addBody(ball,"static",{radius=50,bounce=0.5, density=0,filter=utils:ballFilter()})
         ball.isVisible = false
         table.insert(balls, ball)
     end
@@ -173,7 +181,7 @@ function scene:create( event )
             sheet = menuButtonSheet,
             defaultFrame = 1,
             overFrame = 2,
-            onPress = handleButtonEvent
+            onPress = handleButtonMenu
         }
     )
     fg:insert(buttonMenu)
@@ -183,6 +191,9 @@ function scene:create( event )
     sceneGroup:insert(fg)
     sceneGroup:insert(buttonMenu)
     sceneGroup:insert(touch)
+
+    --music
+    bgMusic = audio.loadStream("sounds/bg-music.wav")
 
 end
  
@@ -241,9 +252,9 @@ local function update(event)
     if (isPressingLeftTouch==false and isPressingRightTouch==false)then
         mask:setLinearVelocity(0,0)
     end
-    if(mask.y>maskY)then
-        mask.y = maskY
-    end
+    --if(mask.y>maskY)then
+        --mask.y = maskY
+    --end
     return true
 end
 
@@ -257,14 +268,16 @@ end
 
 local function deactivateFace(face)
     face.alpha = 0.5
+    print(#balls) 
     for index,ball in ipairs(balls) do
+        print("ball"..index)
         if (ball.isVisible == false) then
             print("hit")
             ball.isVisible = true
             ball.y = display.contentCenterY-500
             ball.x = face.x
             ball.bodyType= "dynamic"
-            ball:applyForce(math.random(-1000, 1000),math.random(1, 1000),ball.x, ball.y)
+            --ball:applyForce(math.random(-100, 100),math.random(1, 100),ball.x, ball.y)
             return true
         end
     end
@@ -273,6 +286,7 @@ end
 local function onLocalCollisionFace(self, event )
     --print("collision")
     local face = self
+    face.t(face)
     --print(face.isActive)
     if ( event.phase == "began" ) then
         if (face.isAlive and event.other.name ~= nil and event.other.name == "ball") then
@@ -288,6 +302,7 @@ local function onLocalCollisionFace(self, event )
 end
 
 local function deactivateBall(ball)
+    ball.isVisible = false
     ball.bodyType = "static"
     ball.isActive = false
     ball.alpha = 0
@@ -333,14 +348,16 @@ local function onTilt( event )
      --textGravity.text = event.xGravity
      return true
  end
-
+local function test(self)
+    print("test"..self.name)
+end
 -- show()
 function scene:show( event )
- 
     local sceneGroup = self.view
     local phase = event.phase
  
     if ( phase == "will" ) then
+        print("game show")
 
         topBarrier.x=display.contentCenterX
 		topBarrier.y=0
@@ -389,7 +406,7 @@ function scene:show( event )
         
         buttonMenu.x = display.contentCenterX
         buttonMenu.y = 100
-
+        audio.setVolume( 0.1, { channel=1 } ) 
         -- inizializzazione Variabili
         
 
@@ -416,9 +433,13 @@ function scene:show( event )
         hospital:addEventListener( "collision" )
 
         for index,face in ipairs(faces) do
+            face.t = test
             face.collision = onLocalCollisionFace
             face:addEventListener( "collision" )
         end
+
+        --audio.play(bgMusic, {loops = -1, fadeIn=2000, channel=1})
+        
 
         Runtime:addEventListener("enterFrame", update)
 
@@ -437,8 +458,15 @@ function scene:hide( event )
  
     if ( phase == "will" ) then
         physics.pause()
+        Runtime:removeEventListener("enterFrame", update)
+        if(gameMode == "touch")then
+            touchRight:removeEventListener("touch",moveMaskRight)
+            touchLeft:removeEventListener("touch",moveMaskLeft)
+        elseif(gameMode == "tilt")then
+            Runtime:removeEventListener( "accelerometer", onTilt )
+        end
     elseif ( phase == "did" ) then
-		print( "did")
+        print( "did")
  
     end
 end

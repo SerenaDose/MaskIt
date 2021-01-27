@@ -33,9 +33,11 @@ local buttonScores
 local buttonMusic
 local buttonisGameModeTouch
 local font = "font/CormorantGaramond-Regular.ttf"
-local fonSize = 40
+local fonSize = 30
 local textMusicState
 local textGameModeState
+local textButtonInfo
+local textButtonScores
 
 
 local gameMode = "touch"
@@ -57,7 +59,7 @@ end
 local function handleButtonInfo( event )
 	composer.showOverlay("info", {
 		effect = "fade",
-		time = 200
+		time = 400
 	})
 end	
 
@@ -154,6 +156,11 @@ function scene:create( event )
         frameOn = 1
     }
 	)
+	
+	textMusicState = display.newText({parent=fg, text="Music: on", font=font, fontSize=fontSize})
+	textGameModeState = display.newText({parent=fg, text="Game mode: touch",font=font, fontSize=fontSize})
+	textButtonInfo = display.newText({parent=fg, text="Info", font=font, fontSize=fontSize})
+	textButtonScores = display.newText({parent=fg, text="Scores", font=font, fontSize=fontSize})
 
 	sceneGroup:insert(bg)
 	sceneGroup:insert(fg)
@@ -196,18 +203,30 @@ function scene:show( event )
 		 
 		buttonisGameModeTouch.x = display.contentCenterX
 		buttonisGameModeTouch.y = buttonMusic.y + 250
-
+		composer.removeScene("game")
 
 		-- Testi
-		display.newText(fg, "Info", buttonInfo.x , buttonInfo.y + 100, font, fontSize )
-		display.newText(fg,"Scores", buttonScores.x , buttonScores.y + 100, font, fontSize )
-		textMusicState = display.newText(fg, "Music: on", buttonMusic.x , buttonMusic.y + 100, font, fontSize )
-		textGameModeState = display.newText(fg, "Game mode: touch", buttonisGameModeTouch.x , buttonisGameModeTouch.y + 100, font, fontSize )
-    elseif ( phase == "did" ) then
-		-- Start the physics engine
+		textButtonInfo.x = buttonInfo.x
+		textButtonInfo.y = buttonInfo.y + 100
+		textButtonScores.x = buttonScores.x
+		textButtonScores.y = buttonScores.y + 100
+		textMusicState.x = buttonMusic.x
+		textMusicState.y = buttonMusic.y + 100
+		textGameModeState.x = buttonisGameModeTouch.x
+		textGameModeState.y = buttonisGameModeTouch.y + 100
+
+	elseif ( phase == "did" ) then
+		
+	elseif ( phase == "did" ) then
+		
+
+		buttonMusic.onPress = onButtonMusicPress
+		buttonMusic:addEventListener( "onPress" )
 		--Non Funziona
-		--buttonMusic.onPress = onButtonMusicPress
-		--buttonisGameModeTouch.onPress = onSwitchPress
+		--buttonInfo.onPress = handleButtonInfo
+		--buttonInfo:addEventListener("onPress")
+		--buttonPlay.onPress = handleButtonPlay
+		--buttonPlay:addEventListener("onPress")
 		print( "did")	
  
     end
@@ -217,7 +236,8 @@ end
 -- hide()
 function scene:hide( event )
  
-    local sceneGroup = self.view
+	local sceneGroup = self.view
+	sceneGroup.alpha = 0
     local phase = event.phase
  
     if ( phase == "will" ) then

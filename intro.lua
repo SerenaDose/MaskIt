@@ -12,6 +12,7 @@ local bg = display.newGroup()
 
 
 local function startGame( event )
+    composer.removeScene("game")
     composer.gotoScene("game", {
 		effect = "fade",
 		time = 400
@@ -48,7 +49,8 @@ function scene:show( event )
     elseif ( phase == "did" ) then
 		-- Start the physics engine
 
-		print( "did")	
+        print( "did")	
+        
         Runtime:addEventListener("touch",startGame)	
         
     end
@@ -62,7 +64,7 @@ function scene:hide( event )
     local phase = event.phase
  
     if ( phase == "will" ) then
-
+        Runtime:removeEventListener("touch",startGame)
     elseif ( phase == "did" ) then
         print( "did")
         composer.removeScene("info")
