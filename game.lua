@@ -57,6 +57,7 @@ local isTouchRightPressed = false
 local time = 0
 
 
+
 -- * touchButtons
 local touchRight
 local touchLeft
@@ -168,12 +169,13 @@ print("game create")
     mask = display.newImageRect(fg, "img/mask.png", 161, 53)
     local polygonShape = { -60,30, -40,-20, 40,-20, 60,30 }
     local rectangleShape = { -80,30, 80,30, 80,20, -80,20 }
-    --physics.addBody(mask,"dynamic",{ radius=30,density=1.5, friction=0, bounce=1, filter=utils:bmFilter()},{outline=maskOutline, bounce=0,density=1.2,friction=0, filter=utils:maskFilter()})
-    physics.addBody(mask,"dynamic",{ shape = rectangleShape ,density=1.5, friction=0, bounce=0, filter=utils:maskFilter()},{shape=polygonShape, bounce=0,density=1.2,friction=0, filter=utils:bmFilter()})
+    --physics.addBody(mask,"dynamic",{outline=maskOutline, bounce=0,density=1.2,friction=0, filter=utils:maskFilter()})
+    physics.addBody(mask,"static",{ shape = rectangleShape ,density=1.5, friction=0, bounce=1, filter=utils:maskFilter()},{shape=polygonShape, bounce=0,density=1.2,friction=0, filter=utils:bmFilter()})
 
-    mask.gravityScale = 5
+    mask.gravityScale = 500
     mask.isFixedRotation = true
     mask.speedX = 1000
+    mask.isBullet = true
     
     --ball = display.newCircle(fg,0,0,50)  
     --ball:setFillColor(1,0,0)
@@ -184,11 +186,11 @@ print("game create")
 
 
     -- * touch
-    touchRight = display.newImageRect(fg, "img/transparent.png", display.contentWidth/2,display.contentHeight)
-    touchLeft = display.newImageRect(fg, "img/transparent.png", display.contentWidth/2,display.contentHeight)
+    touchRight = display.newImageRect(fg, "img/transparent.png", display.contentWidth,display.contentHeight)
+    --touchLeft = display.newImageRect(fg, "img/transparent.png", display.contentWidth/2,display.contentHeight)
 
     touchRight.name = "right"
-    touchLeft.name = "left"
+    --touchLeft.name = "left"
 
     -- * UI
     buttonMenu = widget.newButton(
@@ -213,11 +215,12 @@ print("game create")
 end
  
 local function moveMaskRight(event)
+    print("right")
     if event.phase=="began" then
         --isTouchPressed = true
         --isTouchRightPressed = true
         isPressingRightTouch = true
-        mask:setLinearVelocity(2000,0)
+        --mask:setLinearVelocity(2000,0)
     elseif event.phase=="ended" then
         isPressingRightTouch = false
         --isTouchPressed = false
@@ -226,11 +229,12 @@ local function moveMaskRight(event)
 end
 
 local function moveMaskLeft(event)
+    print("left")
     if event.phase=="began" then
         --isTouchPressed = true
         --isTouchRightPressed = false
         isPressingLeftTouch = true
-        mask:setLinearVelocity(-2000,0)
+        --mask:setLinearVelocity(-2000,0)
                 --mask:applyForce( 500, 0, mask.x-2, mask.y )	 
      elseif event.phase=="ended" then
         isPressingLeftTouch = false
@@ -244,22 +248,26 @@ local function moveMask2(event)
     local deltaTime = (event.time-time)/1000
     time = event.time
 
-    if event.name == "right" then
+    if isPressingRightTouch then
         print(isPressingRightTouch)
-        if (mask.x > display.contentWidth - mask.width) then
-            mask.x = display.contentWidth - mask.width
+        if (mask.x + 2000*deltaTime > display.contentWidth - mask.width/3*2) then
+            mask.x = display.contentWidth - mask.width/3*2
         else
             mask.x = mask.x + 2000*deltaTime
         end
     end
 
-    if event.name == "left" then
-        if (mask.x < mask.width) then
-            mask.x = mask.width
+    if isPressingLeftTouch then
+        if (mask.x - 2000*deltaTime < mask.width/3*2) then
+            mask.x = mask.width/3*2
         else
             mask.x = mask.x - 2000*deltaTime
         end
         
+    end
+
+    if(isPressingLeftTouch == false and isPressingRightTouch == false)then
+        mask.x = mask.x
     end
 
     -- move the ball  	
@@ -340,7 +348,7 @@ local function update(event)
     if (isPressingLeftTouch==false and isPressingRightTouch==false)then
        mask:setLinearVelocity(0,0)
     end
-
+    moveMask2(event)
     --provare a muovere qui la maschera a dx o sx in base al pulsante premuto
     --if(mask.y>maskY)then
         --mask.y = maskY
@@ -357,7 +365,18 @@ local function startGame()
     canUpdateTime = true
 end
 
-
+local function onTouch(event)
+    if ( event.phase == "began" ) then
+        print(event.x)
+        if(event.x>display.contentWidth/2)then
+            isPressingRightTouch = true
+            isPressingLeftTouch = false
+        else
+            isPressingRightTouch = false
+            isPressingLeftTouch = true
+        end
+    end
+end
 local function onLocalCollisionFace(self, event )
     --print("collision")
     local face = self
@@ -473,10 +492,10 @@ function scene:show( event )
         textTimeLeft = display.newText(fg, formatTime(), display.contentCenterX, 400, "font/Rubik-Light.ttf", 180 )
         textTimeLeft.alpha = 0.5
 
-        touchRight.x = display.contentCenterX + display.contentCenterX/2 +2
+        touchRight.x = display.contentCenterX 
         touchRight.y = display.contentCenterY+200
-        touchLeft.x = display.contentCenterX/2 -2
-        touchLeft.y = display.contentCenterY+200
+        --touchLeft.x = display.contentCenterX/2 -2
+        --touchLeft.y = display.contentCenterY+200
         
         buttonMenu.x = display.contentCenterX
         buttonMenu.y = 100
@@ -495,8 +514,7 @@ function scene:show( event )
             print("touch mode")
             --touchRight:addEventListener("touch",moveMaskRight)
             --touchLeft:addEventListener("touch",moveMaskLeft)
-            touchRight:addEventListener("touch",moveMask2)
-            touchLeft:addEventListener("touch",moveMask2)
+            touchRight:addEventListener( "tap", onTouch )
         elseif(gameMode == "tilt")then
             print("tilt mode")
             Runtime:addEventListener( "accelerometer", onTilt )
