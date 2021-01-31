@@ -54,6 +54,7 @@ local ballFriction = 0
 local ballGravity = 0
 local isTouchPressed = false
 local isTouchRightPressed = false
+local time = 0
 
 
 -- * touchButtons
@@ -237,6 +238,32 @@ local function moveMaskLeft(event)
      end
      return true
 end
+
+local function moveMask2(event)
+
+    local deltaTime = (event.time-time)/1000
+    time = event.time
+
+    if event.name == "right" then
+        print(isPressingRightTouch)
+        if (mask.x > display.contentWidth - mask.width) then
+            mask.x = display.contentWidth - mask.width
+        else
+            mask.x = mask.x + 2000*deltaTime
+        end
+    end
+
+    if event.name == "left" then
+        if (mask.x < mask.width) then
+            mask.x = mask.width
+        else
+            mask.x = mask.x - 2000*deltaTime
+        end
+        
+    end
+
+    -- move the ball  	
+ end
 
 local function formatTime()
     local minutes = math.floor( timeLeft / 60 )
@@ -466,8 +493,10 @@ function scene:show( event )
         print(gameMode)
         if(gameMode == "touch")then
             print("touch mode")
-            touchRight:addEventListener("touch",moveMaskRight)
-            touchLeft:addEventListener("touch",moveMaskLeft)
+            --touchRight:addEventListener("touch",moveMaskRight)
+            --touchLeft:addEventListener("touch",moveMaskLeft)
+            touchRight:addEventListener("touch",moveMask2)
+            touchLeft:addEventListener("touch",moveMask2)
         elseif(gameMode == "tilt")then
             print("tilt mode")
             Runtime:addEventListener( "accelerometer", onTilt )
