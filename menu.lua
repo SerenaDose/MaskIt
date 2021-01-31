@@ -33,7 +33,7 @@ local buttonScores
 local buttonMusic
 local buttonisGameModeTouch
 local font = "font/CormorantGaramond-Regular.ttf"
-local fonSize = 30
+local fontSize = 45
 local textMusicState
 local textGameModeState
 local textButtonInfo
@@ -219,14 +219,9 @@ function scene:show( event )
 		
 	elseif ( phase == "did" ) then
 		
-
-		buttonMusic.onPress = onButtonMusicPress
-		buttonMusic:addEventListener( "onPress" )
 		--Non Funziona
 		--buttonInfo.onPress = handleButtonInfo
 		--buttonInfo:addEventListener("onPress")
-		--buttonPlay.onPress = handleButtonPlay
-		--buttonPlay:addEventListener("onPress")
 		print( "did")	
  
     end
@@ -241,7 +236,7 @@ function scene:hide( event )
     local phase = event.phase
  
     if ( phase == "will" ) then
-        print( "Will")
+		print( "Will")
     elseif ( phase == "did" ) then
 		print( "did")
  

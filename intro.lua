@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------------------
 --
--- instructions view
+-- intro view
 --
 -----------------------------------------------------------------------------------------
 
@@ -43,6 +43,7 @@ function scene:show( event )
         background.y = display.contentCenterY
 
         composer.showOverlay("instructions", {
+            isModal = true,
             effect = "fade",
             time = 1
         })

@@ -27,7 +27,11 @@ function M.optionsChecboxButton()
 end
 
 function M.barrierFilter()
-    return {categoryBits = 1, maskBits= 38}
+    return {categoryBits = 1, maskBits= 34}
+end
+
+function M.maskBarrierFilter()
+    return {categoryBits = 64, maskBits= 4}
 end
 
 function M.ballFilter()
@@ -39,11 +43,11 @@ function M.virusFilter()
 end
 
 function M.maskFilter()
-    return {categoryBits = 4, maskBits= 43}
+    return {categoryBits = 4, maskBits= 98}
 end
 
 function M.faceFilter()
-    return {categoryBits = 8, maskBits= 38}
+    return {categoryBits = 8, maskBits= 34}
 end
 
 function M.bmFilter()
