@@ -182,7 +182,6 @@ function scene:show( event )
 
 	if ( phase == "will" ) then
 
-
 		background.x = display.contentCenterX
 		background.y = display.contentCenterY
 
@@ -203,8 +202,7 @@ function scene:show( event )
 		 
 		buttonisGameModeTouch.x = display.contentCenterX
 		buttonisGameModeTouch.y = buttonMusic.y + 250
-		composer.removeScene("game")
-
+		
 		-- Testi
 		textButtonInfo.x = buttonInfo.x
 		textButtonInfo.y = buttonInfo.y + 100
@@ -218,7 +216,9 @@ function scene:show( event )
 	elseif ( phase == "did" ) then
 		
 	elseif ( phase == "did" ) then
-		
+		composer.removeScene("game")
+		--composer.removeHidden()
+
 		--Non Funziona
 		--buttonInfo.onPress = handleButtonInfo
 		--buttonInfo:addEventListener("onPress")

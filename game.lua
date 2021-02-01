@@ -55,6 +55,8 @@ local ballGravity = 0
 local isTouchPressed = false
 local isTouchRightPressed = false
 local time = 0
+local startX = 0
+local maskXStart =0
 
 
 
@@ -170,7 +172,7 @@ print("game create")
     local polygonShape = { -60,30, -40,-20, 40,-20, 60,30 }
     local rectangleShape = { -80,30, 80,30, 80,20, -80,20 }
     --physics.addBody(mask,"dynamic",{outline=maskOutline, bounce=0,density=1.2,friction=0, filter=utils:maskFilter()})
-    physics.addBody(mask,"static",{ shape = rectangleShape ,density=1.5, friction=0, bounce=1, filter=utils:maskFilter()},{shape=polygonShape, bounce=0,density=1.2,friction=0, filter=utils:bmFilter()})
+    physics.addBody(mask,"static",{ shape = rectangleShape ,density=1.5, friction=0, bounce=1, filter=utils:maskFilter()},{shape=polygonShape, bounce=0,density=1.2,friction=0, filter=utils:barrierFilter()})
 
     mask.gravityScale = 500
     mask.isFixedRotation = true
@@ -308,18 +310,23 @@ local function onBallCollision(self, event)
         decreased = true
     end
 end
-local function spawnBall()
+local function spawnBall(pos)
     local ball = display.newImageRect(fg, "img/virus.png", 80, 80)
         ball.name = "ball"
         --ball.isActive = false
         physics.addBody(ball,"dybamic",{radius=40,bounce=ballBounce, density=ballDensity, friction=ballFriction, filter=utils:ballFilter()})
-        ball.x = display.contentCenterX
-        ball.y = display.contentCenterY
+        ball.x = pos
+        ball.y = display.contentCenterY-400
         ball.gravityScale = ballGravity
         ball.collision = onBallCollision
         ball:addEventListener( "collision" )
         --ball:applyForce(math.random(-100, 100),math.random(1, 100),ball.x, ball.y)
-        ball:applyForce(-8000,10000,ball.x, ball.y)
+        if(math.random( 0, 1)>0) then
+            ball:applyForce(-8000,10000,ball.x, ball.y)
+        else
+            ball:applyForce(8000,10000,ball.x, ball.y)
+        end
+        
 end
 
 local function update(event)
@@ -348,7 +355,7 @@ local function update(event)
     if (isPressingLeftTouch==false and isPressingRightTouch==false)then
        mask:setLinearVelocity(0,0)
     end
-    moveMask2(event)
+    --moveMask2(event)
     --provare a muovere qui la maschera a dx o sx in base al pulsante premuto
     --if(mask.y>maskY)then
         --mask.y = maskY
@@ -360,22 +367,36 @@ local function startGame()
     
     physics.start()
     --ball:applyForce(math.random(-100, 100),math.random(1, 100),ball.x, ball.y)
-    ball:applyForce(10000,10000,ball.x, ball.y)
+    ball:applyForce(15000,15000,ball.x, ball.y)
     gameStarted = true
     canUpdateTime = true
 end
 
 local function onTouch(event)
-    if ( event.phase == "began" ) then
-        print(event.x)
-        if(event.x>display.contentWidth/2)then
-            isPressingRightTouch = true
-            isPressingLeftTouch = false
+    if(event.phase == "began")then
+        maskXStart = mask.x
+    end
+    if (event.phase == "moved")then
+        local offset = (event.xStart- event.x)*2
+        local position = maskXStart - offset
+        print(offset)
+        
+        if (position> display.contentWidth - mask.width/3*2) then
+            mask.x = display.contentWidth - mask.width/3*2
+        elseif (position < mask.width/3*2) then
+            mask.x = mask.width/3*2
         else
-            isPressingRightTouch = false
-            isPressingLeftTouch = true
+            mask.x = position
         end
     end
+        -- print(event.x)
+        -- if(event.x>display.contentWidth/2)then
+        --     isPressingRightTouch = true
+        --     isPressingLeftTouch = false
+        -- else
+        --     isPressingRightTouch = false
+        --     isPressingLeftTouch = true
+        -- end
 end
 local function onLocalCollisionFace(self, event )
     --print("collision")
@@ -387,7 +408,7 @@ local function onLocalCollisionFace(self, event )
                 totalInfected = totalInfected + 1
                 face:play()
                 face.alpha = 0.5
-                local spawn = function() return spawnBall() end
+                local spawn = function() return spawnBall(face.x) end
                 timer.performWithDelay(  1, spawn )
             end
         end
@@ -514,7 +535,8 @@ function scene:show( event )
             print("touch mode")
             --touchRight:addEventListener("touch",moveMaskRight)
             --touchLeft:addEventListener("touch",moveMaskLeft)
-            touchRight:addEventListener( "tap", onTouch )
+            --touchRight:addEventListener( "touch", onTouch )
+            Runtime:addEventListener( "touch", onTouch )
         elseif(gameMode == "tilt")then
             print("tilt mode")
             Runtime:addEventListener( "accelerometer", onTilt )
@@ -554,14 +576,15 @@ function scene:hide( event )
         heart:removeEventListener( "collision" )
         hospital:removeEventListener( "collision" )
         if(gameMode == "touch")then
-            touchRight:removeEventListener("touch",moveMaskRight)
-            touchLeft:removeEventListener("touch",moveMaskLeft)
+            --touchRight:removeEventListener("touch",moveMaskRight)
+            --touchLeft:removeEventListener("touch",moveMaskLeft)
         elseif(gameMode == "tilt")then
             Runtime:removeEventListener( "accelerometer", onTilt )
         end
     elseif ( phase == "did" ) then
         print( "did")
-        audio.stop(bgMusic)
+        audio.stop(1)
+        audio.dispose(1)
     end
 end
  
@@ -570,7 +593,7 @@ end
 function scene:destroy( event )
  
     local sceneGroup = self.view
-    audio.dispose(bgMusic)
+    audio.dispose(1)
     -- Code here runs prior to the removal of scene's view
  
 end
