@@ -21,14 +21,23 @@ local scene = composer.newScene()
 
 bg = display.newGroup()  -- group of foreground elements
 fg = display.newGroup()  -- group of background elements
-
+loseGroup = display.newGroup()
+winGroup = display.newGroup()
 
 local background
 local buttonRestart
 local buttonQuit
 local buttonInfo
+local faceHappy
+local faceSad
+
 local font = "font/CormorantGaramond-Regular.ttf"
 local fonSize = 40
+local textWon
+local textLose
+local textScore
+
+local gameMenuMode
 
 local restartButtonSheet = graphics.newImageSheet( "img/ui/button-restart.png", utils:optionsRectangularButtons() )
 local quitButtonSheet = graphics.newImageSheet( "img/ui/button-quit.png", utils:optionsRectangularButtons() )
@@ -38,7 +47,6 @@ local quitButtonSheet = graphics.newImageSheet( "img/ui/button-quit.png", utils:
 -- -----------------------------------------------------------------------------------
 
 local function handleButtonRestart( event )
-	--composer.setVariable( "gameMode", gameMode )
 	composer.gotoScene("intro", {
 		effect = "fade",
 		time = 400
@@ -47,7 +55,6 @@ local function handleButtonRestart( event )
 end	
 
 local function handleButtonQuit( event )
-	--composer.setVariable( "gameMode", gameMode )
 	composer.gotoScene("menu", {
 		effect = "fade",
 		time = 400
@@ -63,7 +70,12 @@ function scene:create( event )
 	
 	-- Load the background image
     background = display.newImageRect(bg,"img/bg-black-transparent.png",1180,2020)
-    
+    faceHappy = display.newImageRect(winGroup, "img/happyFace.png", 300, 300) 
+    textWin = display.newText({parent=winGroup, text="Win", font=font, fontSize=fontSize})
+    textScore = display.newText({parent=winGroup, text="-", font="font/Rubik-Light.ttf", fontSize=200})
+
+    faceSad = display.newImageRect(loseGroup, "img/sadFace.png", 300, 300)     
+    textLose = display.newText({parent=loseGroup, text="Lose", font=font, fontSize=fontSize})
     buttonRestart = widget.newButton(
     {
         sheet = restartButtonSheet,
@@ -84,7 +96,9 @@ function scene:create( event )
     }
     )
 	
-	sceneGroup:insert(bg)
+    sceneGroup:insert(bg)
+    sceneGroup:insert(loseGroup)
+    sceneGroup:insert(winGroup)
 	sceneGroup:insert(buttonRestart)
 	sceneGroup:insert(buttonQuit)
  
@@ -110,12 +124,37 @@ function scene:show( event )
         buttonQuit.x = display.contentCenterX
         buttonQuit.y = display.contentHeight-500
 
+        textWin.x = display.contentCenterX
+        textWin.y = display.contentCenterY
+        faceHappy.x = display.contentCenterX
+        faceHappy.y = textWin.y - 250
+        textScore.x = display.contentCenterX
+        textScore.y = faceHappy.y -400
+        textLose.x = display.contentCenterX
+        textLose.y = display.contentCenterY
+        faceSad.x = display.contentCenterX
+        faceSad.y = textLose.y - 250
+        print(composer.getVariable( "gameMenuMode" ))
+        if(composer.getVariable( "gameMenuMode" )=="menu")then
+            loseGroup.alpha = 0
+            winGroup.alpha = 0
+        elseif (composer.getVariable( "gameMenuMode")=="win")then
+            local score = composer.getVariable( "score")
+            textScore.text = score
+            loseGroup.alpha = 0
+            winGroup.alpha = 1
+        elseif (composer.getVariable( "gameMenuMode")=="lose")then
+            loseGroup.alpha = 1
+            winGroup.alpha = 0
+        end
+
 		-- Testi
 		--display.newText(fg, "Info", buttonInfo.x , buttonInfo.y + 100, font, fontSize )
 		--display.newText(fg,"Scores", buttonScores.x , buttonScores.y + 100, font, fontSize )
 		--textMusicState = display.newText(fg, "Music: on", buttonMusic.x , buttonMusic.y + 100, font, fontSize )
 		--textGameModeState = display.newText(fg, "Game mode: touch", buttonisGameModeTouch.x , buttonisGameModeTouch.y + 100, font, fontSize )
     elseif ( phase == "did" ) then
+    
         --composer.removeScene("game")
 		-- Start the physics engine
 		--Non Funziona

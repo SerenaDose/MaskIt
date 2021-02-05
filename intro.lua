@@ -12,7 +12,7 @@ local bg = display.newGroup()
 
 
 local function startGame( event )
-    composer.removeScene("game")
+    composer.setVariable( "gameMenuMode", "menu" )
     composer.gotoScene("game", {
 		effect = "fade",
 		time = 400
@@ -51,7 +51,7 @@ function scene:show( event )
 		-- Start the physics engine
 
         print( "did")	
-        
+        composer.removeScene("game")
         Runtime:addEventListener("touch",startGame)	
         
     end

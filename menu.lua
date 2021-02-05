@@ -39,8 +39,8 @@ local textGameModeState
 local textButtonInfo
 local textButtonScores
 
-
 local gameMode = "touch"
+local musicOn = "true"
 
 local playButtonSheet = graphics.newImageSheet( "img/ui/button-play.png", utils:optionsRectangularButtons() )
 local infoButtonSheet = graphics.newImageSheet( "img/ui/button-info.png", utils:optionsRoundedButtons() )
@@ -63,8 +63,16 @@ local function handleButtonInfo( event )
 	})
 end	
 
+local function handleButtonScores( event )
+	composer.showOverlay("scores", {
+		effect = "fade",
+		time = 400
+	})
+end	
+
 local function handleButtonPlay( event )
 	composer.setVariable( "gameMode", gameMode )
+	composer.setVariable( "soundOn", musicOn )
 	composer.gotoScene("intro", {
 		effect = "fade",
 		time = 400
@@ -76,8 +84,10 @@ local function onButtonMusicPress( event )
 	local switch = event.target
 	if switch.isOn then
 		textMusicState.text = "Music: on"
+		musicOn = true
 	else
 		textMusicState.text = "Music: off"
+		musicOn = false
 	end
     --print( "Switch with ID '"..switch.id.."' is on: "..tostring(switch.isOn) )
 end
@@ -94,7 +104,43 @@ local function onGameModePress( event )
     --print( "Switch with ID '"..switch.id.."' is on: "..tostring(switch.isOn) )
 end
 
+local function readScores()
+	local path = system.pathForFile( "scores.txt", system.DocumentsDirectory )
+	-- Open the file handle
+	local file, errorString = io.open( path, "r" )
+	if not file then
+	-- Error occurred; output the cause
+		print( "File error: " .. errorString )
+		local file, errorString = io.open( path, "w" )
+		print("create new file")
+		file:write( "6 9 2" )
+		io.close( file )
+	end
+	file = nil
+	local file, errorString = io.open( path, "r" )
+	local scores={}
+	for i = 1,3 do 			
+		local n = file:read("*n")
+		print("Numero trovato"..n)
+		table.insert(scores, n)
+		print(scores)
+	end
 
+	local sortedScores = {}
+	for k, v in pairs(scores) do
+    	table.insert(sortedScores,{k,v})
+	end
+
+	table.sort(sortedScores, function(a,b) return a[2] < b[2] end)
+
+for _, v in ipairs(sortedScores) do
+    print(v[1],v[2])
+end
+	composer.setVariable( "scores", scores )
+	scores = nil
+	io.close( file )
+	file = nil
+end
 -- create()
 function scene:create( event )
  
@@ -126,7 +172,7 @@ function scene:create( event )
 		sheet = scoresButtonSheet,
 		defaultFrame = 1,
 		overFrame = 2,
-		onPress = handleButtonEvent
+		onPress = handleButtonScores
 	}
 	)
 	
@@ -169,7 +215,9 @@ function scene:create( event )
 	sceneGroup:insert(buttonMusic)
 	sceneGroup:insert(buttonPlay)
 	sceneGroup:insert(buttonScores)
- 
+	local path = system.pathForFile( "scores.txt", system.DocumentsDirectory )
+
+	--readScores()
 end
 
 
@@ -215,7 +263,7 @@ function scene:show( event )
 
 	elseif ( phase == "did" ) then
 		
-	elseif ( phase == "did" ) then
+		print("sssssssssss")
 		composer.removeScene("game")
 		--composer.removeHidden()
 
@@ -223,7 +271,7 @@ function scene:show( event )
 		--buttonInfo.onPress = handleButtonInfo
 		--buttonInfo:addEventListener("onPress")
 		print( "did")	
- 
+		
     end
 end
 
