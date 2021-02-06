@@ -13,7 +13,6 @@ local background
 local bg = display.newGroup()
 
 local buttonClose
-local closeButtonSheet = graphics.newImageSheet( "img/ui/button-close.png", utils:optionsRoundedButtons() )
 
 local function handleButtonEvent( event )
     composer.hideOverlay( "fade", 400 )
@@ -24,7 +23,7 @@ function scene:create( event )
  
     local sceneGroup = self.view
     -- Here we create the graphics element of the game
-	
+	local closeButtonSheet = graphics.newImageSheet( "img/ui/button-close.png", utils:optionsRoundedButtons() )
 	-- Load the background image
     background = display.newImageRect(bg,"img/instructions.png",1180,2020)
     

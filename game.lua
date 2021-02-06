@@ -40,7 +40,7 @@ local textTimeLeft
 
 -- * variabili di gioco
 local gameStarted = false
-local timeLeft = 40
+local timeLeft = 120
 local canUpdateTime = false
 local totalInfected = 0
 local healed = 0
@@ -60,7 +60,11 @@ local maskXStart =0
 local isMusicOn
 local gameMode
 local highScores = {}
+local maskAlreadyEnlarged = false
 
+local polygonShape = { -60,30, -40,-20, 40,-20, 60,30 }
+local rectangleShape = { -80,30, 80,30, 80,20, -80,20 }
+local smallRectangleShape = { -50,20, 50,20, 50,-15 , -50,-15 }
 
 -- * touchButtons
 local touchRight
@@ -75,37 +79,7 @@ local buttonMenu
 local bgMusic
 
 
-local optionsFace = {
-	width = 145,
-    height = 146,
-    numFrames = 2,
-}
-local faceSequence = {
-    count = 2, 
-    start = 1,
-    name = "infected",
-    loopCount = 1,
-    loopDirection = "forward",
-    time = 400
-}
-local optionsBM = {
-	width = 72,
-    height = 72,
-    numFrames = 4,
-}
-local BMSequence = {
-    count = 4, 
-    start = 1,
-    --name = "infected",
-    loopCount = 3,
-    loopDirection = "forward",
-    time = 400
-}
 
-local menuButtonSheet = graphics.newImageSheet( "img/ui/button-menu.png", utils:optionsRoundedButtons() )
-local faceSheet = graphics.newImageSheet( "img/face.png", optionsFace )
-local heartSheet = graphics.newImageSheet( "img/heart.png", optionsBM )
-local hospitalSheet = graphics.newImageSheet( "img/hospital.png", optionsBM )
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -125,9 +99,44 @@ end
 function scene:create( event )
  
     local sceneGroup = self.view
-	
+    
+    local optionsFace = {
+        width = 145,
+        height = 146,
+        numFrames = 2,
+    }
+    local faceSequence = {
+        count = 2, 
+    count = 2, 
+        count = 2, 
+        start = 1,
+        loopCount = 1,
+        loopDirection = "forward",
+        time = 400
+    }
+    local optionsBM = {
+        width = 72,
+        height = 72,
+        numFrames = 4,
+    }
+    local BMSequence = {
+        count = 4, 
+    count = 4, 
+        count = 4, 
+        start = 1,
+        loopCount = 3,
+        loopDirection = "forward",
+        time = 400
+    }
+    
+    local menuButtonSheet = graphics.newImageSheet( "img/ui/button-menu.png", utils:optionsRoundedButtons() )
+    local faceSheet = graphics.newImageSheet( "img/face.png", optionsFace )
+    local heartSheet = graphics.newImageSheet( "img/heart.png", optionsBM )
+    local hospitalSheet = graphics.newImageSheet( "img/hospital.png", optionsBM )
+
+
     background = display.newImageRect(bg, "bg.png", 1180, 2020)
-print("game create")
+    print("game create")
     -- * barriere
     topBarrier = display.newRect(fg,0,0,display.contentWidth,1)
 	physics.addBody(topBarrier,"static",{ bounce=barrierBounce, friction=barrierFriction, density=barrierDensity, filter=utils:barrierFilter()})
@@ -161,22 +170,26 @@ print("game create")
     hospital.sound = audio.loadSound("sounds/hospital.wav")
     physics.addBody( hospital, "static", { isSensor=true, filter=utils:bmFilter() })
     --inizializzazione smiles
+
+    local squareShape = { -70,50, 70,50, 70,-50, -70,-50 }
+
     for i = 0,6 do 
         local face = display.newSprite(fg, faceSheet, faceSequence)
         face.name = "face"..i
         face.isAlive = true
         face.isActive = true
-        local squareShape = { -70,50, 70,50, 70,-50, -70,-50 }
         physics.addBody(face, "static", {shape = squareShape, bounce=1, friction=.8, density=1.5, filter=utils:faceFilter() })
         table.insert(faces, face)
     end
 
     local maskOutline = graphics.newOutline(1,"img/mask.png")
     mask = display.newImageRect(fg, "img/mask.png", 161, 53)
-    local polygonShape = { -60,30, -40,-20, 40,-20, 60,30 }
-    local rectangleShape = { -80,30, 80,30, 80,20, -80,20 }
+    mask.width = mask.width/100*60
+    mask.height = mask.height/100*60
+    --physics.removeBody(mask)
+    physics.addBody(mask, "static", {shape = smallRectangleShape, bounce=1, friction=.8, density=1.5, filter=utils:faceFilter() })
     --physics.addBody(mask,"dynamic",{outline=maskOutline, bounce=0,density=1.2,friction=0, filter=utils:maskFilter()})
-    physics.addBody(mask,"static",{ shape = rectangleShape ,density=1.5, friction=0, bounce=1, filter=utils:maskFilter()},{shape=polygonShape, bounce=0,density=1.2,friction=0, filter=utils:barrierFilter()})
+    --physics.addBody(mask,"static",{ shape = rectangleShape ,density=1.5, friction=0, bounce=1, filter=utils:maskFilter()},{shape=polygonShape, bounce=0,density=1.2,friction=0, filter=utils:barrierFilter()})
 
     mask.gravityScale = 500
     mask.isFixedRotation = true
@@ -278,7 +291,7 @@ local function moveMask2(event)
     end
 
     -- move the ball  	
- end
+end
 
 local function formatTime()
     local minutes = math.floor( timeLeft / 60 )
@@ -306,6 +319,7 @@ io.close( file )
 end
 
 local function handleGameEnd()
+    
     if(goneToHospital==7)then
         composer.setVariable( "gameMenuMode", "lose")
     else
@@ -359,10 +373,16 @@ local function spawnBall(pos)
             ball:applyForce(-8000,10000,ball.x, ball.y)
         else
             ball:applyForce(8000,10000,ball.x, ball.y)
-        end
-        
+        end        
 end
-
+local function enlargeBall()
+    mask.width = 161
+    mask.height = 53
+    mask.y = mask.y - 10
+    physics.removeBody(mask)
+    physics.addBody(mask,"static",{outline=maskOutline, bounce=0,density=1.2,friction=0, filter=utils:maskFilter()})
+    --transition.to(textTimeLeft,{time=700,size=500, y = display.contentCenterY})
+end
 local function update(event)
     if gameStarted then
         if (timeLeft==0 or goneToHospital==7)then
@@ -371,6 +391,7 @@ local function update(event)
             if timeLeft==0 then
                 transition.to(textTimeLeft,{time=700,size=500, y = display.contentCenterY})
             end
+            audio.fadeOut( { channel=1, time=5000 } )
             timer.performWithDelay(1000, handleGameEnd)
         end
         --if canUpdateTime then
@@ -388,9 +409,9 @@ local function update(event)
     -- else
     --     mask:setLinearVelocity(0,0)
     -- end
-    if (isPressingLeftTouch==false and isPressingRightTouch==false)then
-       mask:setLinearVelocity(0,0)
-    end
+    --if (isPressingLeftTouch==false and isPressingRightTouch==false)then
+       --mask:setLinearVelocity(0,0)
+    --end
     --moveMask2(event)
     --provare a muovere qui la maschera a dx o sx in base al pulsante premuto
     --if(mask.y>maskY)then
@@ -415,8 +436,6 @@ local function startGame()
 end
 
 local function onTouch(event)
-
-
     if(event.phase == "began")then
         print("began")
         maskXStart = mask.x
@@ -443,6 +462,7 @@ local function onTouch(event)
         --     isPressingLeftTouch = true
         -- end
 end
+
 local function onLocalCollisionFace(self, event )
     --print("collision")
     local face = self
@@ -458,11 +478,20 @@ local function onLocalCollisionFace(self, event )
             end
         end
     end
+    if (maskAlreadyEnlarged == false and totalInfected > 0)then
+        --local spawn = function() return enlargeBall() end
+        timer.performWithDelay( 1, enlargeBall )
+        maskAlreadyEnlarged = true
+    end 
 end
 
 
 local function sensorCollisionHospital(self, event )
     if ( event.phase == "began" ) then
+        local textPoints = display.newText({text="-5",fontSize="40"})
+	    textPoints.x = hospital.x - 100
+	    textPoints.y = hospital.y
+	    transition.to(textPoints,{time=600,alpha = 0 })
         self:play()
         audio.play((self).sound, {channel=3})
         event.other:removeSelf()
@@ -479,6 +508,10 @@ end
 
 local function sensorCollisionHeart(self, event )
     if ( event.phase == "began" ) then
+        local textPoints = display.newText({text="+5",fontSize="40"})
+	    textPoints.x = heart.x +100
+	    textPoints.y = heart.y
+	    transition.to(textPoints,{time=600,alpha = 0 })
         self:play()
         audio.play((self).sound, {channel=2})
         healed = healed + 1
@@ -495,15 +528,27 @@ local function sensorCollisionHeart(self, event )
 end
 
 local function onTilt( event )
+    function round(num, numDecimalPlaces)
+        local mult = 10^(numDecimalPlaces or 0)
+        return math.floor(num * mult + 0.5) / mult
+      end
 
-     mask:setLinearVelocity(event.xInstant*10000,0)
-     --textInstant.text = event.xInstant
-     --textGravity.text = event.xGravity
-     return true
+    local position = display.contentCenterY/2 + (event.xGravity*3*display.contentCenterY )
+    --mappare il valore del giroscopio sull'effettiva lunghezza
+    
+    if (position > display.contentWidth - mask.width/3*2) then
+        textInstant.text = "destra"
+        mask.x = display.contentWidth - mask.width/3*2
+    elseif (position*3 < mask.width/3*2) then
+        mask.x = mask.width/3*2
+    else
+        mask.x = position
+    end    --mask:setLinearVelocity(event.xInstant*10000,0)
+    textGravity.text = round(event.xGravity,1)
+    textInstant.text = position
+    return true
  end
-local function test(self)
-    print("test"..self.name)
-end
+
 -- show()
 function scene:show( event )
     local sceneGroup = self.view
@@ -549,8 +594,9 @@ function scene:show( event )
         ball.y = display.contentCenterY - 400
 
         mask.x = display.contentCenterX
-        maskY = display.contentHeight - 148 - faces[1].height/2 - mask.height
+        local maskY = display.contentHeight - 148 - faces[1].height/2 - mask.height - 10
         mask.y = maskY
+        maskY = nil
 
         heart.x = 105
         heart.y = 125
@@ -559,6 +605,8 @@ function scene:show( event )
         
         textTimeLeft = display.newText(fg, formatTime(), display.contentCenterX, 400, "font/Rubik-Light.ttf", 180 )
         textTimeLeft.alpha = 0.5
+        textInstant = display.newText(fg, "-", display.contentCenterX, 600, "font/Rubik-Light.ttf", 100 )
+        textGravity = display.newText(fg, "-", display.contentCenterX, 700, "font/Rubik-Light.ttf", 100 )
 
         touchRight.x = display.contentCenterX 
         touchRight.y = display.contentCenterY+200
@@ -637,23 +685,21 @@ function scene:hide( event )
             Runtime:removeEventListener( "accelerometer", onTilt )
         end
     elseif ( phase == "did" ) then
-        print( "did")
         if(isMusicOn)then
-        audio.stop(1)
+            audio.stop(1)
         end
     end
 end
  
  
--- destroy()
 function scene:destroy( event )
  
     local sceneGroup = self.view
     if(isMusicOn)then
     audio.dispose(1)
-    end
-    -- Code here runs prior to the removal of scene's view
- 
+    audio.dispose(2)
+    audio.dispose(3)
+    end 
 end
  
 ---------------------------------------

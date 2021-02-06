@@ -39,8 +39,7 @@ local textScore
 
 local gameMenuMode
 
-local restartButtonSheet = graphics.newImageSheet( "img/ui/button-restart.png", utils:optionsRectangularButtons() )
-local quitButtonSheet = graphics.newImageSheet( "img/ui/button-quit.png", utils:optionsRectangularButtons() )
+
  
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -67,7 +66,8 @@ function scene:create( event )
  
     local sceneGroup = self.view
     -- Here we create the graphics element of the game
-	
+	local restartButtonSheet = graphics.newImageSheet( "img/ui/button-restart.png", utils:optionsRectangularButtons() )
+    local quitButtonSheet = graphics.newImageSheet( "img/ui/button-quit.png", utils:optionsRectangularButtons() )   
 	-- Load the background image
     background = display.newImageRect(bg,"img/bg-black-transparent.png",1180,2020)
     faceHappy = display.newImageRect(winGroup, "img/happyFace.png", 300, 300) 

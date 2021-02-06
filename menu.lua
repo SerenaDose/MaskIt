@@ -42,11 +42,6 @@ local textButtonScores
 local gameMode = "touch"
 local musicOn = "true"
 
-local playButtonSheet = graphics.newImageSheet( "img/ui/button-play.png", utils:optionsRectangularButtons() )
-local infoButtonSheet = graphics.newImageSheet( "img/ui/button-info.png", utils:optionsRoundedButtons() )
-local scoresButtonSheet = graphics.newImageSheet( "img/ui/button-scores.png", utils:optionsRoundedButtons() )
-local musicButtonSheet = graphics.newImageSheet( "img/ui/button-sound.png", utils:optionsChecboxButton() )
-local gameModeButtonSheet = graphics.newImageSheet( "img/ui/button-gameMode.png", utils:optionsChecboxButton() )
  
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -147,6 +142,11 @@ function scene:create( event )
     local sceneGroup = self.view
     -- Here we create the graphics element of the game
 	
+local playButtonSheet = graphics.newImageSheet( "img/ui/button-play.png", utils:optionsRectangularButtons() )
+local infoButtonSheet = graphics.newImageSheet( "img/ui/button-info.png", utils:optionsRoundedButtons() )
+local scoresButtonSheet = graphics.newImageSheet( "img/ui/button-scores.png", utils:optionsRoundedButtons() )
+local musicButtonSheet = graphics.newImageSheet( "img/ui/button-sound.png", utils:optionsChecboxButton() )
+local gameModeButtonSheet = graphics.newImageSheet( "img/ui/button-gameMode.png", utils:optionsChecboxButton() )
 	-- Load the background image
 	background = display.newImageRect(bg,"bg-dark.png",1180,2020)
 	logo = display.newImageRect(fg,"img/ui/logo.png",699,477)
@@ -229,7 +229,6 @@ function scene:show( event )
     local phase = event.phase
 
 	if ( phase == "will" ) then
-
 		background.x = display.contentCenterX
 		background.y = display.contentCenterY
 
@@ -268,8 +267,8 @@ function scene:show( event )
 		--composer.removeHidden()
 
 		--Non Funziona
-		--buttonInfo.onPress = handleButtonInfo
-		--buttonInfo:addEventListener("onPress")
+		buttonInfo.onPress = handleButtonInfo
+		buttonInfo:addEventListener("onPress")
 		print( "did")	
 		
     end

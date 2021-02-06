@@ -31,8 +31,6 @@ local fontSize = 100
 local textScores = {}
 local startvalue = 500
 
-local closeButtonSheet = graphics.newImageSheet( "img/ui/button-close.png", utils:optionsRoundedButtons() )
-
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
@@ -44,7 +42,7 @@ function scene:create( event )
  
     local sceneGroup = self.view
     -- Here we create the graphics element of the game
-	
+	local closeButtonSheet = graphics.newImageSheet( "img/ui/button-close.png", utils:optionsRoundedButtons() )
 	-- Load the background image
     background = display.newImageRect(bg,"bg-dark.png",1180,2020)
 

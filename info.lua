@@ -11,6 +11,7 @@ local utils = require("utils")
 local scene = composer.newScene()
 local background
 local bg = display.newGroup()
+local infoText
 
 local buttonClose
 local closeButtonSheet = graphics.newImageSheet( "img/ui/button-close.png", utils:optionsRoundedButtons() )
@@ -26,7 +27,7 @@ function scene:create( event )
     -- Here we create the graphics element of the game
 	
 	-- Load the background image
-    background = display.newImageRect(bg,"img/info.png",1180,2020)
+    background = display.newImageRect(bg,"bg-dark.png",1180,2020)
     
     buttonClose = widget.newButton(
 	{
