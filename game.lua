@@ -539,13 +539,13 @@ local function onTilt( event )
     if (position > display.contentWidth - mask.width/3*2) then
         textInstant.text = "destra"
         mask.x = display.contentWidth - mask.width/3*2
-    elseif (position*3 < mask.width/3*2) then
+    elseif (position < mask.width/3*2) then
         mask.x = mask.width/3*2
     else
         mask.x = position
     end    --mask:setLinearVelocity(event.xInstant*10000,0)
-    textGravity.text = round(event.xGravity,1)
-    textInstant.text = position
+    --textGravity.text = round(event.xGravity,1)
+    --textInstant.text = position
     return true
  end
 
@@ -605,8 +605,8 @@ function scene:show( event )
         
         textTimeLeft = display.newText(fg, formatTime(), display.contentCenterX, 400, "font/Rubik-Light.ttf", 180 )
         textTimeLeft.alpha = 0.5
-        textInstant = display.newText(fg, "-", display.contentCenterX, 600, "font/Rubik-Light.ttf", 100 )
-        textGravity = display.newText(fg, "-", display.contentCenterX, 700, "font/Rubik-Light.ttf", 100 )
+        --textInstant = display.newText(fg, "-", display.contentCenterX, 600, "font/Rubik-Light.ttf", 100 )
+        --textGravity = display.newText(fg, "-", display.contentCenterX, 700, "font/Rubik-Light.ttf", 100 )
 
         touchRight.x = display.contentCenterX 
         touchRight.y = display.contentCenterY+200
