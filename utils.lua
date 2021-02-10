@@ -54,6 +54,14 @@ function M.bmFilter()
     return {categoryBits = 16, maskBits= 2}
 end
 
+function M.rubik()
+    return "font/Rubik-Light.ttf"
+end
+
+function M.garamond()
+    return "font/CormorantGaramond-Regular.ttf"
+end
+
 function M.getScores()
 	local path = system.pathForFile( "scores.txt", system.DocumentsDirectory )
 	-- Open the file handle
@@ -63,7 +71,7 @@ function M.getScores()
 		print( "File error: " .. errorString )
 		local file, errorString = io.open( path, "w" )
 		print("create new file")
-		file:write( "6 9 2" )
+		file:write( "0 0 0" )
 		io.close( file )
 	end
 	file = nil
@@ -84,13 +92,48 @@ function M.getScores()
     return scores
 end
 
-function M.saveScores(scores)
-    print("sddsfdfsdf")
-print(scores)
+function M.saveScores(scores)  
+    local path = system.pathForFile( "scores.txt", system.DocumentsDirectory )
+    local file, errorString = io.open( path, "w" )
+    
 for i = 1,3 do 	
-    print("b")		
-    print(scores[i])
+    local n = " "..scores[i]
+    print(""..scores[i])
+    file:write( n )
 end
+io.close( file )
+end
+
+function M.wasLastTimeSoundOn()
+	local path = system.pathForFile( "settings.txt", system.DocumentsDirectory )
+	-- Open the file handle
+	local file, errorString = io.open( path, "r" )
+	if not file then
+	-- Error occurred; output the cause
+		print( "File error: " .. errorString )
+		local file, errorString = io.open( path, "w" )
+		print("create new file")
+		file:write( "1" )
+		io.close( file )
+	end
+	file = nil
+	local file, errorString = io.open( path, "r" )
+	local isSoundOn = file:read("*n")
+
+    if (isSoundOn == 1)then
+        return true
+    else
+        return false
+    end
+end
+
+function M.saveSoundPreferences(isMmusicOn)
+    local path = system.pathForFile( "settings.txt", system.DocumentsDirectory )
+    local file, errorString = io.open( path, "w" )
+    print("saving---")
+    print(isMmusicOn)
+    file:write( isMmusicOn )
+    io.close( file )
 end
 
 return M

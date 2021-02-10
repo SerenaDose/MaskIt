@@ -14,7 +14,7 @@ local bg = display.newGroup()
 local infoText
 
 local buttonClose
-local closeButtonSheet = graphics.newImageSheet( "img/ui/button-close.png", utils:optionsRoundedButtons() )
+local closeButtonSheet = graphics.newImageSheet( "img/ui/button-close.png", utils.optionsRoundedButtons() )
 
 local function handleButtonEvent( event )
     composer.hideOverlay( "fade", 400 )

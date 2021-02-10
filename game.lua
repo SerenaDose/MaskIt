@@ -37,12 +37,14 @@ local ball
 local heart
 local hospital
 local textTimeLeft
+local textScore
 
 -- * variabili di gioco
 local gameStarted = false
 local timeLeft = 120
 local canUpdateTime = false
 local totalInfected = 0
+local currentInfected = 0
 local healed = 0
 local goneToHospital = 0
 local barrierBounce = 1
@@ -61,6 +63,10 @@ local isMusicOn
 local gameMode
 local highScores = {}
 local maskAlreadyEnlarged = false
+local score = 0
+local isMenuOpen = false
+local timerTimeLeft = nil
+local timerHospital = nil
 
 local polygonShape = { -60,30, -40,-20, 40,-20, 60,30 }
 local rectangleShape = { -80,30, 80,30, 80,20, -80,20 }
@@ -87,6 +93,8 @@ local bgMusic
 
 local function handleButtonMenu( event )
     physics.pause()
+    isMenuOpen = true
+    timer.pause(timerTimeLeft)
     composer.showOverlay("GameMenu", {
         isModal = true,
         effect = "fromTop",
@@ -95,6 +103,12 @@ local function handleButtonMenu( event )
     print( "Button was pressed and released" )
 end	
 
+local function formatTime()
+    local minutes = math.floor( timeLeft / 60 )
+    local seconds = timeLeft % 60
+    -- Make it a formatted string
+    return string.format( "%01d:%02d", minutes, seconds )
+end
 
 function scene:create( event )
  
@@ -129,7 +143,7 @@ function scene:create( event )
         time = 400
     }
     
-    local menuButtonSheet = graphics.newImageSheet( "img/ui/button-menu.png", utils:optionsRoundedButtons() )
+    local menuButtonSheet = graphics.newImageSheet( "img/ui/button-menu.png", utils.optionsRoundedButtons() )
     local faceSheet = graphics.newImageSheet( "img/face.png", optionsFace )
     local heartSheet = graphics.newImageSheet( "img/heart.png", optionsBM )
     local hospitalSheet = graphics.newImageSheet( "img/hospital.png", optionsBM )
@@ -139,22 +153,22 @@ function scene:create( event )
     print("game create")
     -- * barriere
     topBarrier = display.newRect(fg,0,0,display.contentWidth,1)
-	physics.addBody(topBarrier,"static",{ bounce=barrierBounce, friction=barrierFriction, density=barrierDensity, filter=utils:barrierFilter()})
+	physics.addBody(topBarrier,"static",{ bounce=barrierBounce, friction=barrierFriction, density=barrierDensity, filter=utils.barrierFilter()})
 
 	leftBarrier = display.newRect(fg,0,0,1,display.contentHeight)
-	physics.addBody(leftBarrier,"static",{ bounce=barrierBounce, friction=barrierFriction, density=barrierDensity, filter=utils:barrierFilter()})
+	physics.addBody(leftBarrier,"static",{ bounce=barrierBounce, friction=barrierFriction, density=barrierDensity, filter=utils.barrierFilter()})
 
 	rightBarrier = display.newRect(fg,0,0,1,display.contentHeight)
-    physics.addBody(rightBarrier,"static",{ bounce=barrierBounce, friction=barrierFriction, density=barrierDensity, filter=utils:barrierFilter()})
+    physics.addBody(rightBarrier,"static",{ bounce=barrierBounce, friction=barrierFriction, density=barrierDensity, filter=utils.barrierFilter()})
 
     --maskBottomBarrier = display.newRect(fg,0,0,display.contentWidth,1)
-	--physics.addBody(maskBottomBarrier,"static",{ bounce=0, friction=0, density=1, filter=utils:maskBarrierFilter()})
+	--physics.addBody(maskBottomBarrier,"static",{ bounce=0, friction=0, density=1, filter=utils.maskBarrierFilter()})
 
 	--maskLeftBarrier = display.newRect(fg,0,0,1,display.contentHeight/2)
-	--physics.addBody(maskLeftBarrier,"static",{ bounce=0, friction=0, density=1, filter=utils:maskBarrierFilter()})
+	--physics.addBody(maskLeftBarrier,"static",{ bounce=0, friction=0, density=1, filter=utils.maskBarrierFilter()})
 
 	--maskRightBarrier = display.newRect(fg,0,0,1,display.contentHeight/2)
-    --physics.addBody(maskRightBarrier,"static",{ bounce=0, friction=0, density=1, filter=utils:maskBarrierFilter()})
+    --physics.addBody(maskRightBarrier,"static",{ bounce=0, friction=0, density=1, filter=utils.maskBarrierFilter()})
 
     -- * elementi di gioco
 
@@ -162,13 +176,13 @@ function scene:create( event )
     heart = display.newSprite(fg, heartSheet, BMSequence)
     heart.name = "heart"
     heart.sound = audio.loadSound("sounds/heart.wav")
-    physics.addBody( heart, "static", { isSensor=true, filter=utils:bmFilter() })
+    physics.addBody( heart, "static", { isSensor=true, filter=utils.bmFilter() })
 
     --hospital = display.newImageRect(fg, "img/hospital.png", 121, 121)
     hospital = display.newSprite(fg, hospitalSheet, BMSequence)
     hospital.name = "hospital"
     hospital.sound = audio.loadSound("sounds/hospital.wav")
-    physics.addBody( hospital, "static", { isSensor=true, filter=utils:bmFilter() })
+    physics.addBody( hospital, "static", { isSensor=true, filter=utils.bmFilter() })
     --inizializzazione smiles
 
     local squareShape = { -70,50, 70,50, 70,-50, -70,-50 }
@@ -178,7 +192,7 @@ function scene:create( event )
         face.name = "face"..i
         face.isAlive = true
         face.isActive = true
-        physics.addBody(face, "static", {shape = squareShape, bounce=1, friction=.8, density=1.5, filter=utils:faceFilter() })
+        physics.addBody(face, "static", {shape = squareShape, bounce=1, friction=.8, density=1.5, filter=utils.faceFilter() })
         table.insert(faces, face)
     end
 
@@ -186,10 +200,12 @@ function scene:create( event )
     mask = display.newImageRect(fg, "img/mask.png", 161, 53)
     mask.width = mask.width/100*60
     mask.height = mask.height/100*60
+    mask.yScaleUp = 1637
+    mask.yScaleDown = 1657
     --physics.removeBody(mask)
-    physics.addBody(mask, "static", {shape = smallRectangleShape, bounce=1, friction=.8, density=1.5, filter=utils:faceFilter() })
-    --physics.addBody(mask,"dynamic",{outline=maskOutline, bounce=0,density=1.2,friction=0, filter=utils:maskFilter()})
-    --physics.addBody(mask,"static",{ shape = rectangleShape ,density=1.5, friction=0, bounce=1, filter=utils:maskFilter()},{shape=polygonShape, bounce=0,density=1.2,friction=0, filter=utils:barrierFilter()})
+    physics.addBody(mask, "static", {shape = smallRectangleShape, bounce=1, friction=.8, density=1.5, filter=utils.faceFilter() })
+    --physics.addBody(mask,"dynamic",{outline=maskOutline, bounce=0,density=1.2,friction=0, filter=utils.maskFilter()})
+    --physics.addBody(mask,"static",{ shape = rectangleShape ,density=1.5, friction=0, bounce=1, filter=utils.maskFilter()},{shape=polygonShape, bounce=0,density=1.2,friction=0, filter=utils.barrierFilter()})
 
     mask.gravityScale = 500
     mask.isFixedRotation = true
@@ -200,10 +216,11 @@ function scene:create( event )
     --ball:setFillColor(1,0,0)
     ball = display.newImageRect(fg, "img/virus.png", 100, 100)   
     ball.name = "ball"
-    physics.addBody(ball,"dynamic", {radius=50, bounce=ballBounce, density=ballDensity, friction=ballFriction, filter=utils:virusFilter()} )
+    physics.addBody(ball,"dynamic", {radius=50, bounce=ballBounce, density=ballDensity, friction=ballFriction, filter=utils.virusFilter()} )
     ball.gravityScale = ballGravity
 
-
+    textTimeLeft = display.newText({parent=fg, text=formatTime(), font=utils.rubik(), fontSize=180} )
+    textScore = display.newText({parent=fg, text=score, font=utils.rubik(), fontSize=60} )
     -- * touch
     touchRight = display.newImageRect(fg, "img/transparent.png", display.contentWidth,display.contentHeight)
     --touchLeft = display.newImageRect(fg, "img/transparent.png", display.contentWidth/2,display.contentHeight)
@@ -230,7 +247,7 @@ function scene:create( event )
 
     --music
     bgMusic = audio.loadStream("sounds/bg-music.wav")
-    highScores = utils:getScores()
+    highScores = utils.getScores()
 
 end
  
@@ -293,30 +310,41 @@ local function moveMask2(event)
     -- move the ball  	
 end
 
-local function formatTime()
-    local minutes = math.floor( timeLeft / 60 )
-    local seconds = timeLeft % 60
-    -- Make it a formatted string
-    return string.format( "%01d:%02d", minutes, seconds )
+local function updateScore(n)
+    score = score + n
+    textScore.text = score
 end
+
 
 local function updateTime()
     timeLeft = timeLeft-1
     textTimeLeft.text = formatTime()
-    canUpdateTime = true
+    if currentInfected == 0 then
+        updateScore(1)
+    end
+    --canUpdateTime = true
 end
 
-local function saveScores(scores)
-    local path = system.pathForFile( "scores.txt", system.DocumentsDirectory )
-    local file, errorString = io.open( path, "w" )
+local function updateHospitalIcon()
+    if hospital.x < display.contentWidth then
+        transition.to(hospital,{time=1000,alpha=0, x = display.contentWidth + 500})
+    else
+        transition.to(hospital,{time=1000,alpha=1, x = display.contentWidth - 105})
+    end
+end
+
+
+-- local function saveScores(scores)
+--     local path = system.pathForFile( "scores.txt", system.DocumentsDirectory )
+--     local file, errorString = io.open( path, "w" )
     
-for i = 1,3 do 	
-    local n = " "..scores[i]
-    print(""..scores[i])
-    file:write( n )
-end
-io.close( file )
-end
+-- for i = 1,3 do 	
+--     local n = " "..scores[i]
+--     print(""..scores[i])
+--     file:write( n )
+-- end
+-- io.close( file )
+-- end
 
 local function handleGameEnd()
     
@@ -325,13 +353,13 @@ local function handleGameEnd()
     else
         composer.setVariable( "gameMenuMode", "win")
     end
-    if highScores[1] < healed*5 then
-        highScores[1] = healed*5
+    if highScores[1] < score then
+        highScores[1] = score
     end
     table.sort(highScores)
-    saveScores(highScores)
+    utils.saveScores(highScores)
 
-    composer.setVariable( "score", healed*5)
+    composer.setVariable( "score", score)
     composer.showOverlay("GameMenu", {
         isModal = true,
         effect = "fade",
@@ -351,18 +379,19 @@ end
 local function onBallCollision(self, event)
     local vx, vy = self:getLinearVelocity()
    local decreased = false
-    while (vx > 1500 or vy > 1500) do
+    if (vx > 1500 or vy > 1500) then
         print("decrease")
         vx = decreaseVelocity(vx)
         vy = decreaseVelocity(vy)
         decreased = true
+        self:setLinearVelocity(vx, vy)
     end
 end
 local function spawnBall(pos)
     local ball = display.newImageRect(fg, "img/virus.png", 80, 80)
         ball.name = "ball"
         --ball.isActive = false
-        physics.addBody(ball,"dybamic",{radius=40,bounce=ballBounce, density=ballDensity, friction=ballFriction, filter=utils:ballFilter()})
+        physics.addBody(ball,"dybamic",{radius=40,bounce=ballBounce, density=ballDensity, friction=ballFriction, filter=utils.ballFilter()})
         ball.x = pos
         ball.y = display.contentCenterY-400
         ball.gravityScale = ballGravity
@@ -375,15 +404,36 @@ local function spawnBall(pos)
             ball:applyForce(8000,10000,ball.x, ball.y)
         end        
 end
-local function enlargeBall()
+local function scaleUp()
     mask.width = 161
     mask.height = 53
-    mask.y = mask.y - 10
+    mask.y = mask.yScaleUp
     physics.removeBody(mask)
-    physics.addBody(mask,"static",{outline=maskOutline, bounce=0,density=1.2,friction=0, filter=utils:maskFilter()})
+    physics.addBody(mask,"static",{outline=maskOutline, bounce=0,density=1.2,friction=0, filter=utils.maskFilter()})
     --transition.to(textTimeLeft,{time=700,size=500, y = display.contentCenterY})
 end
-local function update(event)
+
+local function scaleDown()
+    mask.width = mask.width/100*60
+    mask.height = mask.height/100*60
+    physics.removeBody(mask)
+    mask.y = mask.yScaleDown
+    --physics.removeBody(mask)
+    physics.addBody(mask, "static", {shape = smallRectangleShape, bounce=1, friction=.8, density=1.5, filter=utils.faceFilter() })
+end
+local function updateEndScore()
+for index,face in ipairs(faces) do
+    if (face.isActive and face.isAlive) then
+        local textPoints = display.newText({text="+25",fontSize="40"})
+        textPoints.x = face.x 
+        textPoints.y = face.y - 150
+        transition.to(textPoints,{time=3000,alpha = 0 })
+        print("text")
+        updateScore(5)
+    end
+end
+end
+local function onUpdate(event)
     if gameStarted then
         if (timeLeft==0 or goneToHospital==7)then
             physics.pause()
@@ -391,10 +441,12 @@ local function update(event)
             if timeLeft==0 then
                 transition.to(textTimeLeft,{time=700,size=500, y = display.contentCenterY})
             end
+            timer.performWithDelay(1000, updateEndScore)
+            
             audio.fadeOut( { channel=1, time=5000 } )
-            timer.performWithDelay(1000, handleGameEnd)
+            timer.performWithDelay(3500, handleGameEnd)
         end
-        --if canUpdateTime then
+        --if canUpdateTime and isMenuOpen==false then
             --timer.performWithDelay(1000, updateTime)
             --canUpdateTime = false
         --end
@@ -428,11 +480,12 @@ local function startGame()
     --mask.width = mask.width/100*50
     --mask.height = mask.height/100*50
     --physics.removeBody(mask)
-    --physics.addBody(mask, "static", {shape = squareShape, bounce=1, friction=.8, density=1.5, filter=utils:faceFilter() })
+    --physics.addBody(mask, "static", {shape = squareShape, bounce=1, friction=.8, density=1.5, filter=utils.faceFilter() })
     --transition.to(textTimeLeft,{time=700,size=500, y = display.contentCenterY})
-    timer.performWithDelay( 1000, updateTime,timeLeft )
+    timerTimeLeft = timer.performWithDelay( 1000, updateTime, timeLeft )
+    timerHospital = timer.performWithDelay( 5000, updateHospitalIcon, timeLeft/5-1)
     gameStarted = true
-    --canUpdateTime = true
+    canUpdateTime = true
 end
 
 local function onTouch(event)
@@ -463,14 +516,17 @@ local function onTouch(event)
         -- end
 end
 
+
 local function onLocalCollisionFace(self, event )
     --print("collision")
     local face = self
     if ( event.phase == "began" ) then
         if (face.isAlive and event.other.name ~= nil and event.other.name == "ball") then
             if face.isActive then
+                updateScore(-2)
                 face.isActive = false
                 totalInfected = totalInfected + 1
+                currentInfected = currentInfected + 1
                 face:play()
                 face.alpha = 0.5
                 local spawn = function() return spawnBall(face.x) end
@@ -478,16 +534,16 @@ local function onLocalCollisionFace(self, event )
             end
         end
     end
-    if (maskAlreadyEnlarged == false and totalInfected > 0)then
+    if currentInfected == 1 then
         --local spawn = function() return enlargeBall() end
-        timer.performWithDelay( 1, enlargeBall )
-        maskAlreadyEnlarged = true
+        timer.performWithDelay( 1, scaleUp )
     end 
 end
 
 
 local function sensorCollisionHospital(self, event )
     if ( event.phase == "began" ) then
+        updateScore(-10)
         local textPoints = display.newText({text="-5",fontSize="40"})
 	    textPoints.x = hospital.x - 100
 	    textPoints.y = hospital.y
@@ -496,6 +552,10 @@ local function sensorCollisionHospital(self, event )
         audio.play((self).sound, {channel=3})
         event.other:removeSelf()
         goneToHospital = goneToHospital + 1
+        currentInfected = currentInfected - 1
+        if currentInfected == 0 then
+            timer.performWithDelay( 1, scaleDown)
+        end
         for index,face in ipairs(faces) do
             if (face.isActive == false and face.isAlive) then
                 face.isAlive = false
@@ -508,6 +568,7 @@ end
 
 local function sensorCollisionHeart(self, event )
     if ( event.phase == "began" ) then
+        updateScore(8)
         local textPoints = display.newText({text="+5",fontSize="40"})
 	    textPoints.x = heart.x +100
 	    textPoints.y = heart.y
@@ -515,7 +576,11 @@ local function sensorCollisionHeart(self, event )
         self:play()
         audio.play((self).sound, {channel=2})
         healed = healed + 1
+        currentInfected = currentInfected - 1
         event.other:removeSelf()
+        if currentInfected == 0 then
+            timer.performWithDelay( 1, scaleDown)
+        end
         for index,face in ipairs(faces) do
             if (face.isActive == false and face.isAlive) then
                 face.isActive = true
@@ -537,7 +602,6 @@ local function onTilt( event )
     --mappare il valore del giroscopio sull'effettiva lunghezza
     
     if (position > display.contentWidth - mask.width/3*2) then
-        textInstant.text = "destra"
         mask.x = display.contentWidth - mask.width/3*2
     elseif (position < mask.width/3*2) then
         mask.x = mask.width/3*2
@@ -603,8 +667,13 @@ function scene:show( event )
         hospital.x = display.contentWidth - 105
         hospital.y = 125
         
-        textTimeLeft = display.newText(fg, formatTime(), display.contentCenterX, 400, "font/Rubik-Light.ttf", 180 )
+        textTimeLeft.x = display.contentCenterX
+        textTimeLeft.y = 400
         textTimeLeft.alpha = 0.5
+
+        textScore.x = display.contentCenterX
+        textScore.y = textTimeLeft.y + 130
+        textScore.alpha = 0.5
         --textInstant = display.newText(fg, "-", display.contentCenterX, 600, "font/Rubik-Light.ttf", 100 )
         --textGravity = display.newText(fg, "-", display.contentCenterX, 700, "font/Rubik-Light.ttf", 100 )
 
@@ -655,14 +724,17 @@ function scene:show( event )
         if(isMusicOn)then
             audio.play(bgMusic, {loops = -1, fadeIn=2000, channel=1})
         end
-        
-        Runtime:addEventListener("enterFrame", update)
-        
+        Runtime:addEventListener("enterFrame", onUpdate)
+        ball.collision = onBallCollision
+        ball:addEventListener( "collision" )
         startGame()
  
     end
 end
-
+function scene:resumeGame()
+    physics.start()
+    timer.resume(timerTimeLeft)
+end
  
 -- hide()
 function scene:hide( event )

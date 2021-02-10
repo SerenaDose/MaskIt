@@ -40,7 +40,7 @@ local textButtonInfo
 local textButtonScores
 
 local gameMode = "touch"
-local musicOn = "true"
+local isMusicOn = "true"
 
  
 -- -----------------------------------------------------------------------------------
@@ -67,7 +67,12 @@ end
 
 local function handleButtonPlay( event )
 	composer.setVariable( "gameMode", gameMode )
-	composer.setVariable( "soundOn", musicOn )
+	composer.setVariable( "soundOn", isMusicOn )
+	if isMusicOn then
+		utils.saveSoundPreferences(1)
+	else
+		utils.saveSoundPreferences(0)
+	end
 	composer.gotoScene("intro", {
 		effect = "fade",
 		time = 400
@@ -79,10 +84,10 @@ local function onButtonMusicPress( event )
 	local switch = event.target
 	if switch.isOn then
 		textMusicState.text = "Music: on"
-		musicOn = true
+		isMusicOn = true
 	else
 		textMusicState.text = "Music: off"
-		musicOn = false
+		isMusicOn = false
 	end
     --print( "Switch with ID '"..switch.id.."' is on: "..tostring(switch.isOn) )
 end
@@ -99,54 +104,17 @@ local function onGameModePress( event )
     --print( "Switch with ID '"..switch.id.."' is on: "..tostring(switch.isOn) )
 end
 
-local function readScores()
-	local path = system.pathForFile( "scores.txt", system.DocumentsDirectory )
-	-- Open the file handle
-	local file, errorString = io.open( path, "r" )
-	if not file then
-	-- Error occurred; output the cause
-		print( "File error: " .. errorString )
-		local file, errorString = io.open( path, "w" )
-		print("create new file")
-		file:write( "6 9 2" )
-		io.close( file )
-	end
-	file = nil
-	local file, errorString = io.open( path, "r" )
-	local scores={}
-	for i = 1,3 do 			
-		local n = file:read("*n")
-		print("Numero trovato"..n)
-		table.insert(scores, n)
-		print(scores)
-	end
-
-	local sortedScores = {}
-	for k, v in pairs(scores) do
-    	table.insert(sortedScores,{k,v})
-	end
-
-	table.sort(sortedScores, function(a,b) return a[2] < b[2] end)
-
-for _, v in ipairs(sortedScores) do
-    print(v[1],v[2])
-end
-	composer.setVariable( "scores", scores )
-	scores = nil
-	io.close( file )
-	file = nil
-end
 -- create()
 function scene:create( event )
  
     local sceneGroup = self.view
     -- Here we create the graphics element of the game
 	
-local playButtonSheet = graphics.newImageSheet( "img/ui/button-play.png", utils:optionsRectangularButtons() )
-local infoButtonSheet = graphics.newImageSheet( "img/ui/button-info.png", utils:optionsRoundedButtons() )
-local scoresButtonSheet = graphics.newImageSheet( "img/ui/button-scores.png", utils:optionsRoundedButtons() )
-local musicButtonSheet = graphics.newImageSheet( "img/ui/button-sound.png", utils:optionsChecboxButton() )
-local gameModeButtonSheet = graphics.newImageSheet( "img/ui/button-gameMode.png", utils:optionsChecboxButton() )
+local playButtonSheet = graphics.newImageSheet( "img/ui/button-play.png", utils.optionsRectangularButtons() )
+local infoButtonSheet = graphics.newImageSheet( "img/ui/button-info.png", utils.optionsRoundedButtons() )
+local scoresButtonSheet = graphics.newImageSheet( "img/ui/button-scores.png", utils.optionsRoundedButtons() )
+local musicButtonSheet = graphics.newImageSheet( "img/ui/button-sound.png", utils.optionsChecboxButton() )
+local gameModeButtonSheet = graphics.newImageSheet( "img/ui/button-gameMode.png", utils.optionsChecboxButton() )
 	-- Load the background image
 	background = display.newImageRect(bg,"bg-dark.png",1180,2020)
 	logo = display.newImageRect(fg,"img/ui/logo.png",699,477)
@@ -203,10 +171,21 @@ local gameModeButtonSheet = graphics.newImageSheet( "img/ui/button-gameMode.png"
     }
 	)
 	
-	textMusicState = display.newText({parent=fg, text="Music: on", font=font, fontSize=fontSize})
 	textGameModeState = display.newText({parent=fg, text="Game mode: touch",font=font, fontSize=fontSize})
 	textButtonInfo = display.newText({parent=fg, text="Info", font=font, fontSize=fontSize})
 	textButtonScores = display.newText({parent=fg, text="Scores", font=font, fontSize=fontSize})
+
+	local wasLastTimeSoundOn = utils.wasLastTimeSoundOn()
+	if wasLastTimeSoundOn then
+		buttonMusic:setState( { isOn=true})
+		textMusicState = display.newText({parent=fg, text="Music: on", font=font, fontSize=fontSize})
+		isMusicOn = true
+	else
+		buttonMusic:setState( { isOn=false})
+		textMusicState = display.newText({parent=fg, text="Music: off", font=font, fontSize=fontSize})
+		isMusicOn = false
+	end
+
 
 	sceneGroup:insert(bg)
 	sceneGroup:insert(fg)
@@ -215,7 +194,6 @@ local gameModeButtonSheet = graphics.newImageSheet( "img/ui/button-gameMode.png"
 	sceneGroup:insert(buttonMusic)
 	sceneGroup:insert(buttonPlay)
 	sceneGroup:insert(buttonScores)
-	local path = system.pathForFile( "scores.txt", system.DocumentsDirectory )
 
 	--readScores()
 end
@@ -270,7 +248,8 @@ function scene:show( event )
 		buttonInfo.onPress = handleButtonInfo
 		buttonInfo:addEventListener("onPress")
 		print( "did")	
-		
+	
+	
     end
 end
 

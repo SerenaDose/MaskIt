@@ -23,6 +23,7 @@ bg = display.newGroup()  -- group of foreground elements
 fg = display.newGroup()  -- group of background elements
 loseGroup = display.newGroup()
 winGroup = display.newGroup()
+resumeGroup = display.newGroup()
 
 local background
 local buttonRestart
@@ -38,7 +39,7 @@ local textLose
 local textScore
 
 local gameMenuMode
-
+local gameHasToBeResumed = false
 
  
 -- -----------------------------------------------------------------------------------
@@ -61,14 +62,21 @@ local function handleButtonQuit( event )
     print( "Button Play was pressed and released" )
 end	
 
+local function handleButtonResume( event )
+    gameHasToBeResumed = true
+    composer.hideOverlay( "fade", 400 )
+end	
+
 -- create()
 function scene:create( event )
  
     local sceneGroup = self.view
     -- Here we create the graphics element of the game
-	local restartButtonSheet = graphics.newImageSheet( "img/ui/button-restart.png", utils:optionsRectangularButtons() )
-    local quitButtonSheet = graphics.newImageSheet( "img/ui/button-quit.png", utils:optionsRectangularButtons() )   
-	-- Load the background image
+	local restartButtonSheet = graphics.newImageSheet( "img/ui/button-restart.png", utils.optionsRectangularButtons() )
+    local quitButtonSheet = graphics.newImageSheet( "img/ui/button-quit.png", utils.optionsRectangularButtons() )   
+    local resumeButtonSheet = graphics.newImageSheet( "img/ui/button-resume.png", utils.optionsRectangularButtons() )   
+
+    -- Load the background image
     background = display.newImageRect(bg,"img/bg-black-transparent.png",1180,2020)
     faceHappy = display.newImageRect(winGroup, "img/happyFace.png", 300, 300) 
     textWin = display.newText({parent=winGroup, text="Win", font=font, fontSize=fontSize})
@@ -95,12 +103,24 @@ function scene:create( event )
         onPress = handleButtonQuit
     }
     )
+
+    buttonResume = widget.newButton(
+    {
+        sheet = resumeButtonSheet,
+        defaultFrame = 1,
+        overFrame = 2,
+        --label = "button",
+        onPress = handleButtonResume
+    }
+    )
 	
     sceneGroup:insert(bg)
     sceneGroup:insert(loseGroup)
     sceneGroup:insert(winGroup)
 	sceneGroup:insert(buttonRestart)
-	sceneGroup:insert(buttonQuit)
+    sceneGroup:insert(buttonQuit)
+    resumeGroup:insert(buttonResume)
+    sceneGroup:insert(resumeGroup)
  
 end
 
@@ -116,13 +136,16 @@ function scene:show( event )
 
 
 		background.x = display.contentCenterX
-		background.y = display.contentCenterY
+        background.y = display.contentCenterY
 
         buttonRestart.x = display.contentCenterX
-        buttonRestart.y = display.contentHeight-200
+        buttonRestart.y = display.contentHeight-500
 
         buttonQuit.x = display.contentCenterX
-        buttonQuit.y = display.contentHeight-500
+        buttonQuit.y = display.contentHeight-200
+
+        buttonResume.x = display.contentCenterX
+        buttonResume.y = display.contentHeight-800
 
         textWin.x = display.contentCenterX
         textWin.y = display.contentCenterY
@@ -136,14 +159,17 @@ function scene:show( event )
         faceSad.y = textLose.y - 250
         print(composer.getVariable( "gameMenuMode" ))
         if(composer.getVariable( "gameMenuMode" )=="menu")then
+            resumeGroup.alpha = 1
             loseGroup.alpha = 0
             winGroup.alpha = 0
         elseif (composer.getVariable( "gameMenuMode")=="win")then
             local score = composer.getVariable( "score")
             textScore.text = score
+            resumeGroup.alpha = 0
             loseGroup.alpha = 0
             winGroup.alpha = 1
         elseif (composer.getVariable( "gameMenuMode")=="lose")then
+            resumeGroup.alpha = 0
             loseGroup.alpha = 1
             winGroup.alpha = 0
         end
@@ -175,8 +201,11 @@ function scene:hide( event )
     if ( phase == "will" ) then
         print( "Will")
     elseif ( phase == "did" ) then
-		print( "did")
- 
+        print( "did")
+        if gameHasToBeResumed then
+            local parent = event.parent
+            parent:resumeGame()
+        end
     end
 end
  

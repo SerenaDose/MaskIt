@@ -85,7 +85,7 @@ local BMSequence = {
     time = 400
 }
 
-local menuButtonSheet = graphics.newImageSheet( "img/ui/button-menu.png", utils:optionsRoundedButtons() )
+local menuButtonSheet = graphics.newImageSheet( "img/ui/button-menu.png", utils.optionsRoundedButtons() )
 local faceSheet = graphics.newImageSheet( "img/face.png", optionsFace )
 local heartSheet = graphics.newImageSheet( "img/heart.png", optionsBM )
 local hospitalSheet = graphics.newImageSheet( "img/hospital.png", optionsBM )
@@ -108,31 +108,31 @@ function scene:create( event )
 
     -- * barriere
     topBarrier = display.newRect(fg,0,0,display.contentWidth,1)
-	physics.addBody(topBarrier,"static",{ bounce=1, friction=0, density=1.5, filter=utils:barrierFilter()})
+	physics.addBody(topBarrier,"static",{ bounce=1, friction=0, density=1.5, filter=utils.barrierFilter()})
 
 	leftBarrier = display.newRect(fg,0,0,1,display.contentHeight)
-	physics.addBody(leftBarrier,"static",{ bounce=1, friction=0, density=1.5, filter=utils:barrierFilter()})
+	physics.addBody(leftBarrier,"static",{ bounce=1, friction=0, density=1.5, filter=utils.barrierFilter()})
 
 	rightBarrier = display.newRect(fg,0,0,1,display.contentHeight)
-    physics.addBody(rightBarrier,"static",{ friction=1, density=1.5, filter=utils:barrierFilter()})
+    physics.addBody(rightBarrier,"static",{ friction=1, density=1.5, filter=utils.barrierFilter()})
 
     -- * elementi di gioco
 
     --heart = display.newImageRect(fg, "img/heart.png", 125, 117)
     heart = display.newSprite(fg, heartSheet, BMSequence)
     heart.name = "heart"
-    physics.addBody( heart, "static", { isSensor=true, filter=utils:bmFilter() })
+    physics.addBody( heart, "static", { isSensor=true, filter=utils.bmFilter() })
 
     --hospital = display.newImageRect(fg, "img/hospital.png", 121, 121)
     hospital = display.newSprite(fg, hospitalSheet, BMSequence)
     hospital.name = "hospital"
-    physics.addBody( hospital, "static", { isSensor=true, filter=utils:bmFilter() })
+    physics.addBody( hospital, "static", { isSensor=true, filter=utils.bmFilter() })
     --inizializzazione smiles
     for i = 0,6 do 
         local face = display.newSprite(fg, faceSheet, faceSequence)
         face.name = "face"
         face.isActive = true
-        physics.addBody(face, "static", {bounce=1, friction=.8, density=1.5, filter=utils:faceFilter() })
+        physics.addBody(face, "static", {bounce=1, friction=.8, density=1.5, filter=utils.faceFilter() })
         table.insert(faces, face)
     end
 
@@ -140,14 +140,14 @@ function scene:create( event )
         local ball = display.newImageRect(fg, "img/virus.png", 80, 80)
         ball.name = "ball"
         --ball.isActive = false
-        physics.addBody(ball,"static",{radius=50,bounce=0.5, filter=utils:ballFilter()})
+        physics.addBody(ball,"static",{radius=50,bounce=0.5, filter=utils.ballFilter()})
         ball.isVisible = false
         table.insert(balls, ball)
     end
 
     local maskOutline = graphics.newOutline(1,"img/mask.png")
     mask = display.newImageRect(fg, "img/mask.png", 161, 53)
-    physics.addBody(mask,"dynamic",{outline=maskOutline, bounce=0,density=1.2, filter=utils:maskFilter()})
+    physics.addBody(mask,"dynamic",{outline=maskOutline, bounce=0,density=1.2, filter=utils.maskFilter()})
     mask.gravityScale = 5
     mask.isFixedRotation = true
     mask.speedX = 1000
@@ -156,7 +156,7 @@ function scene:create( event )
     --ball:setFillColor(1,0,0)
     ball = display.newImageRect(fg, "img/virus.png", 100, 100)   
     ball.name = "ball"
-    physics.addBody(ball,"dynamic", {radius=50, bounce = 1, filter=utils:virusFilter()} )
+    physics.addBody(ball,"dynamic", {radius=50, bounce = 1, filter=utils.virusFilter()} )
 
 
 

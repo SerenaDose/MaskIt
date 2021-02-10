@@ -42,7 +42,7 @@ function scene:create( event )
  
     local sceneGroup = self.view
     -- Here we create the graphics element of the game
-	local closeButtonSheet = graphics.newImageSheet( "img/ui/button-close.png", utils:optionsRoundedButtons() )
+	local closeButtonSheet = graphics.newImageSheet( "img/ui/button-close.png", utils.optionsRoundedButtons() )
 	-- Load the background image
     background = display.newImageRect(bg,"bg-dark.png",1180,2020)
 
@@ -63,7 +63,7 @@ function scene:create( event )
 	}
 	)
 
-    HighScores = utils:getScores()
+    HighScores = utils.getScores()
 
     sceneGroup:insert(bg)
     sceneGroup:insert(fg)
