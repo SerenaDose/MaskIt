@@ -10,15 +10,15 @@ local utils = require("utils")
  
 local scene = composer.newScene()
  
-physics = require("physics")
+local physics = require("physics")
 --physics.setDrawMode("hybrid")
 physics.start()
 physics.pause()
 
 -- * dislay groups
-bg = display.newGroup()  -- group of foreground elements
-fg = display.newGroup()  -- group of background elements
-touch = display.newGroup()
+local bg = display.newGroup()  -- group of foreground elements
+local fg = display.newGroup()  -- group of background elements
+local touch = display.newGroup()
 
 local background
 -- * barriere
@@ -41,7 +41,7 @@ local textScore
 
 -- * variabili di gioco
 local gameStarted = false
-local timeLeft = 120
+local timeLeft = 10
 local canUpdateTime = false
 local totalInfected = 0
 local currentInfected = 0
@@ -94,7 +94,12 @@ local bgMusic
 local function handleButtonMenu( event )
     physics.pause()
     isMenuOpen = true
-    timer.pause(timerTimeLeft)
+    if timerTimeLeft ~= nil then
+        timer.pause(timerTimeLeft)
+    end
+    if timerHospital ~= nil then
+        timer.pause(timerHospital)
+    end
     composer.showOverlay("GameMenu", {
         isModal = true,
         effect = "fromTop",
@@ -121,8 +126,6 @@ function scene:create( event )
     }
     local faceSequence = {
         count = 2, 
-    count = 2, 
-        count = 2, 
         start = 1,
         loopCount = 1,
         loopDirection = "forward",
@@ -134,8 +137,6 @@ function scene:create( event )
         numFrames = 4,
     }
     local BMSequence = {
-        count = 4, 
-    count = 4, 
         count = 4, 
         start = 1,
         loopCount = 3,
@@ -326,6 +327,7 @@ local function updateTime()
 end
 
 local function updateHospitalIcon()
+    print("H")
     if hospital.x < display.contentWidth then
         transition.to(hospital,{time=1000,alpha=0, x = display.contentWidth + 500})
     else
@@ -346,8 +348,7 @@ end
 -- io.close( file )
 -- end
 
-local function handleGameEnd()
-    
+local function handleGameEnd() 
     if(goneToHospital==7)then
         composer.setVariable( "gameMenuMode", "lose")
     else
@@ -378,13 +379,12 @@ end
 
 local function onBallCollision(self, event)
     local vx, vy = self:getLinearVelocity()
-   local decreased = false
     if (vx > 1500 or vy > 1500) then
         print("decrease")
         vx = decreaseVelocity(vx)
         vy = decreaseVelocity(vy)
-        decreased = true
         self:setLinearVelocity(vx, vy)
+        return true
     end
 end
 local function spawnBall(pos)
@@ -424,10 +424,10 @@ end
 local function updateEndScore()
 for index,face in ipairs(faces) do
     if (face.isActive and face.isAlive) then
-        local textPoints = display.newText({text="+25",fontSize="40"})
+        local textPoints = display.newText({text="+25",fontSize="50"})
         textPoints.x = face.x 
         textPoints.y = face.y - 150
-        transition.to(textPoints,{time=3000,alpha = 0 })
+        transition.to(textPoints,{time=3000,alpha = 0, y = textPoints.y - 50})
         print("text")
         updateScore(5)
     end
@@ -557,7 +557,7 @@ local function sensorCollisionHospital(self, event )
             timer.performWithDelay( 1, scaleDown)
         end
         for index,face in ipairs(faces) do
-            if (face.isActive == false and face.isAlive) then
+            if (not(face.isActive)  and face.isAlive) then
                 face.isAlive = false
                 face.alpha = 0
                 return true
@@ -582,7 +582,7 @@ local function sensorCollisionHeart(self, event )
             timer.performWithDelay( 1, scaleDown)
         end
         for index,face in ipairs(faces) do
-            if (face.isActive == false and face.isAlive) then
+            if (not(face.isActive) and face.isAlive) then
                 face.isActive = true
                 face.alpha = 1
                 face:setFrame(1)
@@ -725,8 +725,8 @@ function scene:show( event )
             audio.play(bgMusic, {loops = -1, fadeIn=2000, channel=1})
         end
         Runtime:addEventListener("enterFrame", onUpdate)
-        ball.collision = onBallCollision
-        ball:addEventListener( "collision" )
+        --ball.collision = onBallCollision
+        --ball:addEventListener( "collision" )
         startGame()
  
     end
@@ -734,6 +734,7 @@ end
 function scene:resumeGame()
     physics.start()
     timer.resume(timerTimeLeft)
+    timer.resume(timerHospital)
 end
  
 -- hide()
@@ -748,6 +749,8 @@ function scene:hide( event )
         heart:removeEventListener( "collision" )
         hospital:removeEventListener( "collision" )
         print("remove")
+        timerTimeLeft = nil
+        timerHospital = nil
         if(gameMode == "touch")then
             print("remove")
             Runtime:removeEventListener( "touch", onTouch )

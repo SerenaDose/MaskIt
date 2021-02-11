@@ -136,4 +136,15 @@ function M.saveSoundPreferences(isMmusicOn)
     io.close( file )
 end
 
+function M.fileExists(fileName)
+    local path = system.pathForFile( fileName, system.DocumentsDirectory )
+    local file, errorString = io.open( path, "r" )
+    if not file then
+        return false
+    else
+        io.close( file )
+        return true
+    end
+end
+
 return M

@@ -41,12 +41,13 @@ function scene:show( event )
 	if ( phase == "will" ) then
 		background.x = display.contentCenterX
         background.y = display.contentCenterY
-
-        composer.showOverlay("instructions", {
-            isModal = true,
-            effect = "fade",
-            time = 1
-        })
+        if composer.getVariable( "showInstructions") =="1"then
+            composer.showOverlay("instructions", {
+                isModal = true,
+                effect = "fade",
+                time = 1
+            })
+        end
     elseif ( phase == "did" ) then
 		-- Start the physics engine
 

@@ -175,6 +175,14 @@ local gameModeButtonSheet = graphics.newImageSheet( "img/ui/button-gameMode.png"
 	textButtonInfo = display.newText({parent=fg, text="Info", font=font, fontSize=fontSize})
 	textButtonScores = display.newText({parent=fg, text="Scores", font=font, fontSize=fontSize})
 
+	if(utils.fileExists("settings.txt"))then
+		print("già giocato")
+		composer.setVariable("showInstructions","0")
+	else
+		print("nuovo giocatore")
+		composer.setVariable("showInstructions","1")
+	end
+
 	local wasLastTimeSoundOn = utils.wasLastTimeSoundOn()
 	if wasLastTimeSoundOn then
 		buttonMusic:setState( { isOn=true})
@@ -186,6 +194,7 @@ local gameModeButtonSheet = graphics.newImageSheet( "img/ui/button-gameMode.png"
 		isMusicOn = false
 	end
 
+	
 
 	sceneGroup:insert(bg)
 	sceneGroup:insert(fg)
@@ -245,8 +254,8 @@ function scene:show( event )
 		--composer.removeHidden()
 
 		--Non Funziona
-		buttonInfo.onPress = handleButtonInfo
-		buttonInfo:addEventListener("onPress")
+		--buttonInfo.onPress = handleButtonInfo
+		--buttonInfo:addEventListener("onPress")
 		print( "did")	
 	
 	
