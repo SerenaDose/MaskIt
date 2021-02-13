@@ -1,50 +1,40 @@
 -----------------------------------------------------------------------------------------
 --
--- angry smyleys -- game scene
+-- MaskIt -- menu scene
 --
 -----------------------------------------------------------------------------------------
 
--- Load the composer library
+-- Load libraries
 local composer = require("composer")
 local widget = require("widget")
 local utils = require("utils")
 
--- define a new Scene
 local scene = composer.newScene()
 
--- -----------------------------------------------------------------------------------
--- Code outside of the scene event functions below will only be executed ONCE unless
--- the scene is removed entirely (not recycled) via "composer.removeScene()"
--- -----------------------------------------------------------------------------------
-
-bg = display.newGroup() -- group of foreground elements
-fg = display.newGroup() -- group of background elements
-
+-- Elementi della schermata
 local background
 local logo
 local buttonPlay
 local buttonInfo
 local buttonScores
 local buttonMusic
-local buttonisGameModeTouch
-local font = "font/CormorantGaramond-Regular.ttf"
-local fontSize = 45
 local textMusicState
 local textGameModeState
 local textButtonInfo
 local textButtonScores
 
+-- Variabili 
+local buttonisGameModeTouch
 local gameMode = "touch"
 local isMusicOn = "true"
+
+local fontSize = 45
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
-local function handleButtonEvent(event)
-	print("Button was pressed and released")
-end
 
-local function handleButtonInfo(event)
+local function onPressButtonInfo(event)
 	composer.showOverlay(
 		"info",
 		{
@@ -54,7 +44,7 @@ local function handleButtonInfo(event)
 	)
 end
 
-local function handleButtonScores(event)
+local function onPressButtonScores(event)
 	composer.showOverlay(
 		"scores",
 		{
@@ -64,9 +54,11 @@ local function handleButtonScores(event)
 	)
 end
 
-local function handleButtonPlay(event)
+local function onPressButtonPlay(event)
+	-- Setto le variabili prima di passare alla scena di gioco
 	composer.setVariable("gameMode", gameMode)
 	composer.setVariable("soundOn", isMusicOn)
+	-- Salvo le preferenze per la prossima volta in cui verrà riaperta l'app
 	if isMusicOn then
 		utils.saveSoundPreferences(1)
 	else
@@ -79,10 +71,10 @@ local function handleButtonPlay(event)
 			time = 400
 		}
 	)
-	print("Button Play was pressed and released")
 end
 
-local function onButtonMusicPress(event)
+local function onPressButtonMusic(event)
+	-- Update stato e testo switch
 	local switch = event.target
 	if switch.isOn then
 		textMusicState.text = "Music: on"
@@ -91,10 +83,10 @@ local function onButtonMusicPress(event)
 		textMusicState.text = "Music: off"
 		isMusicOn = false
 	end
-	--print( "Switch with ID '"..switch.id.."' is on: "..tostring(switch.isOn) )
 end
 
-local function onGameModePress(event)
+local function onPressButtonGameMode(event)
+	-- Update stato e testo switch
 	local switch = event.target
 	if switch.isOn then
 		textGameModeState.text = "Game mode: touch"
@@ -103,30 +95,31 @@ local function onGameModePress(event)
 		textGameModeState.text = "Game mode: tilt"
 		gameMode = "tilt"
 	end
-	--print( "Switch with ID '"..switch.id.."' is on: "..tostring(switch.isOn) )
 end
 
--- create()
 function scene:create(event)
 	local sceneGroup = self.view
-	-- Here we create the graphics element of the game
+
+	local bg = display.newGroup() 
+	local fg = display.newGroup() 
 
 	local playButtonSheet = graphics.newImageSheet("img/ui/button-play.png", utils.optionsRectangularButtons())
 	local infoButtonSheet = graphics.newImageSheet("img/ui/button-info.png", utils.optionsRoundedButtons())
 	local scoresButtonSheet = graphics.newImageSheet("img/ui/button-scores.png", utils.optionsRoundedButtons())
 	local musicButtonSheet = graphics.newImageSheet("img/ui/button-sound.png", utils.optionsChecboxButton())
 	local gameModeButtonSheet = graphics.newImageSheet("img/ui/button-gameMode.png", utils.optionsChecboxButton())
-	-- Load the background image
+
+	-- Inizializzazione elementi della scena
 	background = display.newImageRect(bg, "bg-dark.png", 1180, 2020)
 	logo = display.newImageRect(fg, "img/ui/logo.png", 699, 477)
+
 	buttonPlay =
 		widget.newButton(
 		{
 			sheet = playButtonSheet,
 			defaultFrame = 1,
 			overFrame = 2,
-			--label = "button",
-			onPress = handleButtonPlay
+			onPress = onPressButtonPlay
 		}
 	)
 	buttonInfo =
@@ -135,7 +128,7 @@ function scene:create(event)
 			sheet = infoButtonSheet,
 			defaultFrame = 1,
 			overFrame = 2,
-			onPress = handleButtonInfo
+			onPress = onPressButtonInfo
 		}
 	)
 	buttonScores =
@@ -144,19 +137,17 @@ function scene:create(event)
 			sheet = scoresButtonSheet,
 			defaultFrame = 1,
 			overFrame = 2,
-			onPress = handleButtonScores
+			onPress = onPressButtonScores
 		}
 	)
-
 	buttonMusic =
 		widget.newSwitch(
 		{
 			style = "checkbox",
-			id = "buttonMusic",
 			width = 119,
 			height = 117,
 			initialSwitchState = true,
-			onPress = onButtonMusicPress,
+			onPress = onPressButtonMusic,
 			sheet = musicButtonSheet,
 			frameOff = 2,
 			frameOn = 1
@@ -166,37 +157,36 @@ function scene:create(event)
 		widget.newSwitch(
 		{
 			style = "checkbox",
-			id = "buttonMusic",
 			width = 119,
 			height = 117,
 			initialSwitchState = true,
-			onPress = onGameModePress,
+			onPress = onPressButtonGameMode,
 			sheet = gameModeButtonSheet,
 			frameOff = 2,
 			frameOn = 1
 		}
 	)
 
-	textGameModeState = display.newText({parent = fg, text = "Game mode: touch", font = font, fontSize = fontSize})
-	textButtonInfo = display.newText({parent = fg, text = "Info", font = font, fontSize = fontSize})
-	textButtonScores = display.newText({parent = fg, text = "Scores", font = font, fontSize = fontSize})
+	textGameModeState = display.newText({parent = fg, text = "Game mode: touch", font = utils.garamond(), fontSize = fontSize})
+	textButtonInfo = display.newText({parent = fg, text = "Info", font = utils.garamond(), fontSize = fontSize})
+	textButtonScores = display.newText({parent = fg, text = "Scores", font = utils.garamond(), fontSize = fontSize})
 
+	-- Se il file settings.txt non è presente significa che il gioco viene giocato per la prima volta, 
+	-- quindi mostro le istruzioni nella prossima scena, altrimenti no
 	if (utils.fileExists("settings.txt")) then
-		print("già giocato")
 		composer.setVariable("showInstructions", "0")
 	else
-		print("nuovo giocatore")
 		composer.setVariable("showInstructions", "1")
 	end
-
+	-- Recupero dal file settings le preferenze riguardanti l'audio e aggiorno le variabili
 	local wasLastTimeSoundOn = utils.wasLastTimeSoundOn()
 	if wasLastTimeSoundOn then
 		buttonMusic:setState({isOn = true})
-		textMusicState = display.newText({parent = fg, text = "Music: on", font = font, fontSize = fontSize})
+		textMusicState = display.newText({parent = fg, text = "Music: on", font = utils.garamond(), fontSize = fontSize})
 		isMusicOn = true
 	else
 		buttonMusic:setState({isOn = false})
-		textMusicState = display.newText({parent = fg, text = "Music: off", font = font, fontSize = fontSize})
+		textMusicState = display.newText({parent = fg, text = "Music: off", font = utils.garamond(), fontSize = fontSize})
 		isMusicOn = false
 	end
 
@@ -208,12 +198,10 @@ function scene:create(event)
 	sceneGroup:insert(buttonPlay)
 	sceneGroup:insert(buttonScores)
 
-	--readScores()
 end
 
 -- show()
 function scene:show(event)
-	local sceneGroup = self.view
 	local phase = event.phase
 
 	if (phase == "will") then
@@ -247,42 +235,13 @@ function scene:show(event)
 		textMusicState.y = buttonMusic.y + 100
 		textGameModeState.x = buttonisGameModeTouch.x
 		textGameModeState.y = buttonisGameModeTouch.y + 100
+		
 	elseif (phase == "did") then
-		print("sssssssssss")
 		composer.removeScene("game")
-		--composer.removeHidden()
-
-		--Non Funziona
-		--buttonInfo.onPress = handleButtonInfo
-		--buttonInfo:addEventListener("onPress")
-		print("did")
 	end
 end
 
--- hide()
-function scene:hide(event)
-	local sceneGroup = self.view
-	sceneGroup.alpha = 0
-	local phase = event.phase
-
-	if (phase == "will") then
-		print("Will")
-	elseif (phase == "did") then
-		print("did")
-	end
-end
-
--- destroy()
-function scene:destroy(event)
-	local sceneGroup = self.view
-	-- Code here runs prior to the removal of scene's view
-	--buttonisGameModeTouch:removeSelf()
-end
-
----------------------------------------
 scene:addEventListener("create", scene)
 scene:addEventListener("show", scene)
-scene:addEventListener("hide", scene)
-scene:addEventListener("destroy", scene)
 
 return scene

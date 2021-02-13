@@ -65,8 +65,8 @@ local highScores = {}
 local maskAlreadyEnlarged = false
 local score = 0
 local isMenuOpen = false
-local timerTimeLeft = nil
-local timerHospital = nil
+local timerTimeLeft 
+local timerHospital 
 
 local polygonShape = {-60, 30, -40, -20, 40, -20, 60, 30}
 local rectangleShape = {-80, 30, 80, 30, 80, 20, -80, 20}

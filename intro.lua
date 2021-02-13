@@ -1,16 +1,19 @@
 -----------------------------------------------------------------------------------------
 --
--- intro view
+-- MaskIt Intro scene
 --
 -----------------------------------------------------------------------------------------
 
--- load the composer library
+-- Load libraries
 local composer = require("composer")
+
 local scene = composer.newScene()
+
 local background
 local bg = display.newGroup()
 
 local function startGame(event)
+    -- Setto la variabile che mi permetterà di capire se nel menu di gioco devo mostrare solo i pulsanti o una
     composer.setVariable("gameMenuMode", "menu")
     composer.gotoScene(
         "game",
