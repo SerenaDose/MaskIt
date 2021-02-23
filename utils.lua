@@ -27,31 +27,23 @@ function M.optionsChecboxButton()
 end
 
 function M.barrierFilter()
-    return {categoryBits = 1, maskBits = 34}
-end
-
-function M.maskBarrierFilter()
-    return {categoryBits = 64, maskBits = 4}
+    return {categoryBits = 1, maskBits = 18}
 end
 
 function M.ballFilter()
-    return {categoryBits = 2, maskBits = 29}
+    return {categoryBits = 2, maskBits = 5}
 end
 
 function M.virusFilter()
-    return {categoryBits = 32, maskBits = 13}
+    return {categoryBits = 16, maskBits = 13}
 end
 
 function M.maskFilter()
-    return {categoryBits = 4, maskBits = 98}
-end
-
-function M.faceFilter()
-    return {categoryBits = 8, maskBits = 34}
+    return {categoryBits = 4, maskBits = 18}
 end
 
 function M.bmFilter()
-    return {categoryBits = 16, maskBits = 2}
+    return {categoryBits = 8, maskBits = 16}
 end
 
 function M.rubik()
@@ -62,12 +54,12 @@ function M.garamond()
     return "font/CormorantGaramond-Regular.ttf"
 end
 
+-- Recupera i punteggi dal file scores.txt, se non esiste lo crea mettendo 3 punteggi 0
 function M.getScores()
     local path = system.pathForFile("scores.txt", system.DocumentsDirectory)
-    -- Open the file handle
+
     local file, errorString = io.open(path, "r")
     if not file then
-        -- Error occurred; output the cause
         print("File error: " .. errorString)
         local file, errorString = io.open(path, "w")
         print("create new file")
@@ -79,40 +71,34 @@ function M.getScores()
     local scores = {}
     for i = 1, 3 do
         local n = file:read("*n")
-        print("Numero trovato" .. n)
         table.insert(scores, n)
-        print(scores)
     end
 
     table.sort(scores)
     for i = 1, 3 do
-        print("b")
         print(scores[i])
     end
     return scores
 end
 
+-- Salva i punteggi sovrascrivendo quelli esistenti
 function M.saveScores(scores)
     local path = system.pathForFile("scores.txt", system.DocumentsDirectory)
     local file, errorString = io.open(path, "w")
-
     for i = 1, 3 do
         local n = " " .. scores[i]
-        print("" .. scores[i])
         file:write(n)
     end
     io.close(file)
 end
-
+-- Legge la variabile all'interno del file settings.txt, se non esiste lo crea e salva l'attuale preferenza
 function M.wasLastTimeSoundOn()
     local path = system.pathForFile("settings.txt", system.DocumentsDirectory)
-    -- Open the file handle
+
     local file, errorString = io.open(path, "r")
     if not file then
-        -- Error occurred; output the cause
         print("File error: " .. errorString)
         local file, errorString = io.open(path, "w")
-        print("create new file")
         file:write("1")
         io.close(file)
     end
@@ -126,16 +112,15 @@ function M.wasLastTimeSoundOn()
         return false
     end
 end
-
+-- Salva la preferenza sull'audio
 function M.saveSoundPreferences(isMmusicOn)
     local path = system.pathForFile("settings.txt", system.DocumentsDirectory)
     local file, errorString = io.open(path, "w")
-    print("saving---")
     print(isMmusicOn)
     file:write(isMmusicOn)
     io.close(file)
 end
-
+-- Verifica se un file esiste
 function M.fileExists(fileName)
     local path = system.pathForFile(fileName, system.DocumentsDirectory)
     local file, errorString = io.open(path, "r")

@@ -110,7 +110,7 @@ function scene:create(event)
 	local gameModeButtonSheet = graphics.newImageSheet("img/ui/button-gameMode.png", utils.optionsChecboxButton())
 
 	-- Inizializzazione elementi della scena
-	background = display.newImageRect(bg, "bg-dark.png", 1180, 2020)
+	background = display.newImageRect(bg, "img/bg-dark.png", 1180, 2020)
 	logo = display.newImageRect(fg, "img/ui/logo.png", 699, 477)
 
 	buttonPlay =

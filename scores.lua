@@ -38,7 +38,7 @@ function scene:create(event)
 
     local closeButtonSheet = graphics.newImageSheet("img/ui/button-close.png", utils.optionsRoundedButtons())
 
-    background = display.newImageRect(bg, "bg-dark.png", 1180, 2020)
+    background = display.newImageRect(bg, "img/bg-dark.png", 1180, 2020)
 
     title = display.newText({parent = fg, text = "High Scores", font = utils.garamond, fontSize = 150})
     text01 = display.newText({parent = fg, text = "-", font = utils.rubik(), fontSize = fontSize})

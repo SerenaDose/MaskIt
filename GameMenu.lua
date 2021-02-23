@@ -1,49 +1,38 @@
 -----------------------------------------------------------------------------------------
 --
--- angry smyleys -- game scene
+-- MaskIt -- game menu scene
 --
 -----------------------------------------------------------------------------------------
 
--- Load the composer library
+-- Load libraries
 local composer = require("composer")
 local widget = require("widget")
 local utils = require("utils")
 
--- define a new Scene
 local scene = composer.newScene()
 
--- -----------------------------------------------------------------------------------
--- Code outside of the scene event functions below will only be executed ONCE unless
--- the scene is removed entirely (not recycled) via "composer.removeScene()"
--- -----------------------------------------------------------------------------------
-
-bg = display.newGroup() -- group of foreground elements
-fg = display.newGroup() -- group of background elements
-loseGroup = display.newGroup()
-winGroup = display.newGroup()
-resumeGroup = display.newGroup()
+local bg = display.newGroup() -- group of foreground elements
+-- Tre gruppi che gestistcono cosa mostrare nel menu di gioca a seconda del caso vittoria, sconfitta, pausa
+local loseGroup = display.newGroup()
+local winGroup = display.newGroup()
+local resumeGroup = display.newGroup()
 
 local background
 local buttonRestart
 local buttonQuit
-local buttonInfo
+local buttonResume
+
 local faceHappy
 local faceSad
 
-local font = "font/CormorantGaramond-Regular.ttf"
-local fonSize = 40
-local textWon
+local fontSize = 50
+local textWin
 local textLose
 local textScore
 
-local gameMenuMode
 local gameHasToBeResumed = false
 
--- -----------------------------------------------------------------------------------
--- Scene event functions
--- -----------------------------------------------------------------------------------
-
-local function handleButtonRestart(event)
+local function onPressButtonRestart(event)
     composer.gotoScene(
         "intro",
         {
@@ -54,7 +43,7 @@ local function handleButtonRestart(event)
     print("Button Play was pressed and released")
 end
 
-local function handleButtonQuit(event)
+local function onPressButtonQuit(event)
     composer.gotoScene(
         "menu",
         {
@@ -65,57 +54,57 @@ local function handleButtonQuit(event)
     print("Button Play was pressed and released")
 end
 
-local function handleButtonResume(event)
+local function onPressButtonResume(event)
+    -- Setto la variabile che controllerò all'hide della scena per sapere se il gioco deve essere ripreso
     gameHasToBeResumed = true
     composer.hideOverlay("fade", 400)
 end
 
--- create()
 function scene:create(event)
     local sceneGroup = self.view
-    -- Here we create the graphics element of the game
     local restartButtonSheet = graphics.newImageSheet("img/ui/button-restart.png", utils.optionsRectangularButtons())
     local quitButtonSheet = graphics.newImageSheet("img/ui/button-quit.png", utils.optionsRectangularButtons())
     local resumeButtonSheet = graphics.newImageSheet("img/ui/button-resume.png", utils.optionsRectangularButtons())
-
-    -- Load the background image
+    
     background = display.newImageRect(bg, "img/bg-black-transparent.png", 1180, 2020)
     faceHappy = display.newImageRect(winGroup, "img/happyFace.png", 300, 300)
-    textWin = display.newText({parent = winGroup, text = "Win", font = font, fontSize = fontSize})
-    textScore = display.newText({parent = winGroup, text = "-", font = "font/Rubik-Light.ttf", fontSize = 200})
+    textWin = display.newText({
+        parent = winGroup,
+        text = "Congrats, you’re a hero! \nYou managed to keep the city safe, now that the vaccine is ready you can rest",   
+        width = 650,
+        font = utils.garamond,
+        fontSize = fontSize,
+        align = "center"  
+    })
+    textScore = display.newText({parent = winGroup, text = "-", font = utils.rubik, fontSize = 200})
 
     faceSad = display.newImageRect(loseGroup, "img/sadFace.png", 300, 300)
-    textLose = display.newText({parent = loseGroup, text = "Lose", font = font, fontSize = fontSize})
-    buttonRestart =
-        widget.newButton(
+    textLose = display.newText({parent = loseGroup, text = "You failed to prevent the inevitable, all the citizens have been taken in charge by the hospital", width = 750, font = utils.garamond, fontSize = fontSize, align = "center"})
+   
+    buttonRestart = widget.newButton(
         {
             sheet = restartButtonSheet,
             defaultFrame = 1,
             overFrame = 2,
-            --label = "button",
-            onPress = handleButtonRestart
+            onPress = onPressButtonRestart
         }
     )
 
-    buttonQuit =
-        widget.newButton(
+    buttonQuit = widget.newButton(
         {
             sheet = quitButtonSheet,
             defaultFrame = 1,
             overFrame = 2,
-            --label = "button",
-            onPress = handleButtonQuit
+            onPress = onPressButtonQuit
         }
     )
 
-    buttonResume =
-        widget.newButton(
+    buttonResume = widget.newButton(
         {
             sheet = resumeButtonSheet,
             defaultFrame = 1,
             overFrame = 2,
-            --label = "button",
-            onPress = handleButtonResume
+            onPress = onPressButtonResume
         }
     )
 
@@ -128,17 +117,11 @@ function scene:create(event)
     sceneGroup:insert(resumeGroup)
 end
 
--- show()
 function scene:show(event)
-    local sceneGroup = self.view
     local phase = event.phase
 
     if (phase == "will") then
-        -- Testi
-        --display.newText(fg, "Info", buttonInfo.x , buttonInfo.y + 100, font, fontSize )
-        --display.newText(fg,"Scores", buttonScores.x , buttonScores.y + 100, font, fontSize )
-        --textMusicState = display.newText(fg, "Music: on", buttonMusic.x , buttonMusic.y + 100, font, fontSize )
-        --textGameModeState = display.newText(fg, "Game mode: touch", buttonisGameModeTouch.x , buttonisGameModeTouch.y + 100, font, fontSize )
+
         background.x = display.contentCenterX
         background.y = display.contentCenterY
 
@@ -152,16 +135,18 @@ function scene:show(event)
         buttonResume.y = display.contentHeight - 800
 
         textWin.x = display.contentCenterX
-        textWin.y = display.contentCenterY
+        textWin.y = display.contentCenterY 
         faceHappy.x = display.contentCenterX
-        faceHappy.y = textWin.y - 250
+        faceHappy.y = textWin.y - 350
         textScore.x = display.contentCenterX
         textScore.y = faceHappy.y - 400
+
         textLose.x = display.contentCenterX
         textLose.y = display.contentCenterY
         faceSad.x = display.contentCenterX
-        faceSad.y = textLose.y - 250
-        print(composer.getVariable("gameMenuMode"))
+        faceSad.y = textLose.y - 350
+
+        -- In base a quando viene richiamato il menu scelgo cosa mostrare
         if (composer.getVariable("gameMenuMode") == "menu") then
             resumeGroup.alpha = 1
             loseGroup.alpha = 0
@@ -177,43 +162,23 @@ function scene:show(event)
             loseGroup.alpha = 1
             winGroup.alpha = 0
         end
-    elseif (phase == "did") then
-        --composer.removeScene("game")
-        -- Start the physics engine
-        --Non Funziona
-        --buttonMusic.onPress = onButtonMusicPress
-        --buttonisGameModeTouch.onPress = onSwitchPress
-        print("did")
     end
 end
 
--- hide()
 function scene:hide(event)
-    local sceneGroup = self.view
     local phase = event.phase
 
-    if (phase == "will") then
-        print("Will")
-    elseif (phase == "did") then
-        print("did")
+    if (phase == "did") then
         if gameHasToBeResumed then
+            -- Chiamo la fuzione che fa ripartire il gioco nella scena di gioco
             local parent = event.parent
             parent:resumeGame()
         end
     end
 end
 
--- destroy()
-function scene:destroy(event)
-    local sceneGroup = self.view
-    -- Code here runs prior to the removal of scene's view
-    --buttonisGameModeTouch:removeSelf()
-end
-
----------------------------------------
 scene:addEventListener("create", scene)
 scene:addEventListener("show", scene)
 scene:addEventListener("hide", scene)
-scene:addEventListener("destroy", scene)
 
 return scene
