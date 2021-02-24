@@ -23,7 +23,7 @@ local textGameModeState
 local textButtonInfo
 local textButtonScores
 
--- Variabili 
+-- Variabili
 local buttonisGameModeTouch
 local gameMode = "touch"
 local isMusicOn = "true"
@@ -100,8 +100,8 @@ end
 function scene:create(event)
 	local sceneGroup = self.view
 
-	local bg = display.newGroup() 
-	local fg = display.newGroup() 
+	local bg = display.newGroup()
+	local fg = display.newGroup()
 
 	local playButtonSheet = graphics.newImageSheet("img/ui/button-play.png", utils.optionsRectangularButtons())
 	local infoButtonSheet = graphics.newImageSheet("img/ui/button-info.png", utils.optionsRoundedButtons())
@@ -167,11 +167,12 @@ function scene:create(event)
 		}
 	)
 
-	textGameModeState = display.newText({parent = fg, text = "Game mode: touch", font = utils.garamond(), fontSize = fontSize})
+	textGameModeState =
+		display.newText({parent = fg, text = "Game mode: touch", font = utils.garamond(), fontSize = fontSize})
 	textButtonInfo = display.newText({parent = fg, text = "Info", font = utils.garamond(), fontSize = fontSize})
 	textButtonScores = display.newText({parent = fg, text = "Scores", font = utils.garamond(), fontSize = fontSize})
 
-	-- Se il file settings.txt non è presente significa che il gioco viene giocato per la prima volta, 
+	-- Se il file settings.txt non è presente significa che il gioco viene giocato per la prima volta,
 	-- quindi mostro le istruzioni nella prossima scena, altrimenti no
 	if (utils.fileExists("settings.txt")) then
 		composer.setVariable("showInstructions", "0")
@@ -197,7 +198,6 @@ function scene:create(event)
 	sceneGroup:insert(buttonMusic)
 	sceneGroup:insert(buttonPlay)
 	sceneGroup:insert(buttonScores)
-
 end
 
 -- show()
@@ -235,7 +235,6 @@ function scene:show(event)
 		textMusicState.y = buttonMusic.y + 100
 		textGameModeState.x = buttonisGameModeTouch.x
 		textGameModeState.y = buttonisGameModeTouch.y + 100
-		
 	elseif (phase == "did") then
 		composer.removeScene("game")
 	end

@@ -20,7 +20,6 @@ local function onPressButtonClose(event)
 end
 
 function scene:create(event)
-
     local sceneGroup = self.view
     local closeButtonSheet = graphics.newImageSheet("img/ui/button-close.png", utils.optionsRoundedButtons())
 

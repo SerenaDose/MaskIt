@@ -33,7 +33,7 @@ end
 function scene:create(event)
     local sceneGroup = self.view
 
-    local bg = display.newGroup() 
+    local bg = display.newGroup()
     local fg = display.newGroup()
 
     local closeButtonSheet = graphics.newImageSheet("img/ui/button-close.png", utils.optionsRoundedButtons())

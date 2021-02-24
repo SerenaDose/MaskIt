@@ -66,7 +66,6 @@ function scene:hide(event)
     end
 end
 
-
 scene:addEventListener("create", scene)
 scene:addEventListener("show", scene)
 scene:addEventListener("hide", scene)

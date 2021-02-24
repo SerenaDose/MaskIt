@@ -63,23 +63,37 @@ function scene:create(event)
     local restartButtonSheet = graphics.newImageSheet("img/ui/button-restart.png", utils.optionsRectangularButtons())
     local quitButtonSheet = graphics.newImageSheet("img/ui/button-quit.png", utils.optionsRectangularButtons())
     local resumeButtonSheet = graphics.newImageSheet("img/ui/button-resume.png", utils.optionsRectangularButtons())
-    
+
     background = display.newImageRect(bg, "img/bg-black-transparent.png", 1180, 2020)
     faceHappy = display.newImageRect(winGroup, "img/happyFace.png", 300, 300)
-    textWin = display.newText({
-        parent = winGroup,
-        text = "Congrats, you’re a hero! \nYou managed to keep the city safe, now that the vaccine is ready you can rest",   
-        width = 650,
-        font = utils.garamond,
-        fontSize = fontSize,
-        align = "center"  
-    })
+    textWin =
+        display.newText(
+        {
+            parent = winGroup,
+            text = "Congrats, you’re a hero! \nYou managed to keep the city safe, now that the vaccine is ready you can rest",
+            width = 650,
+            font = utils.garamond,
+            fontSize = fontSize,
+            align = "center"
+        }
+    )
     textScore = display.newText({parent = winGroup, text = "-", font = utils.rubik, fontSize = 200})
 
     faceSad = display.newImageRect(loseGroup, "img/sadFace.png", 300, 300)
-    textLose = display.newText({parent = loseGroup, text = "You failed to prevent the inevitable, all the citizens have been taken in charge by the hospital", width = 750, font = utils.garamond, fontSize = fontSize, align = "center"})
-   
-    buttonRestart = widget.newButton(
+    textLose =
+        display.newText(
+        {
+            parent = loseGroup,
+            text = "You failed to prevent the inevitable, all the citizens have been taken in charge by the hospital",
+            width = 750,
+            font = utils.garamond,
+            fontSize = fontSize,
+            align = "center"
+        }
+    )
+
+    buttonRestart =
+        widget.newButton(
         {
             sheet = restartButtonSheet,
             defaultFrame = 1,
@@ -88,7 +102,8 @@ function scene:create(event)
         }
     )
 
-    buttonQuit = widget.newButton(
+    buttonQuit =
+        widget.newButton(
         {
             sheet = quitButtonSheet,
             defaultFrame = 1,
@@ -97,7 +112,8 @@ function scene:create(event)
         }
     )
 
-    buttonResume = widget.newButton(
+    buttonResume =
+        widget.newButton(
         {
             sheet = resumeButtonSheet,
             defaultFrame = 1,
@@ -119,7 +135,6 @@ function scene:show(event)
     local phase = event.phase
 
     if (phase == "will") then
-
         background.x = display.contentCenterX
         background.y = display.contentCenterY
 
@@ -133,7 +148,7 @@ function scene:show(event)
         buttonResume.y = display.contentHeight - 800
 
         textWin.x = display.contentCenterX
-        textWin.y = display.contentCenterY 
+        textWin.y = display.contentCenterY
         faceHappy.x = display.contentCenterX
         faceHappy.y = textWin.y - 350
         textScore.x = display.contentCenterX

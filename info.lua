@@ -23,7 +23,7 @@ end
 function scene:create(event)
     local sceneGroup = self.view
 
-    background = display.newImageRect( "img/info.png", 1180, 2020)
+    background = display.newImageRect("img/info.png", 1180, 2020)
 
     buttonClose =
         widget.newButton(
@@ -49,7 +49,6 @@ function scene:show(event)
         buttonClose.y = display.contentHeight - 200
     end
 end
-
 
 scene:addEventListener("create", scene)
 scene:addEventListener("show", scene)

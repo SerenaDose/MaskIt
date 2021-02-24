@@ -35,7 +35,7 @@ local heart
 local hospital
 local textTimeLeft
 local textScore
-local maskOutline 
+local maskOutline
 
 -- * variabili di gioco
 local timeLeft = 120
@@ -53,8 +53,8 @@ local highScores = {}
 local score = 0
 local scaleUpMask = false
 local scaleDownMask = false
-local timerTimeLeft 
-local timerHospital 
+local timerTimeLeft
+local timerHospital
 local moduleForce = 18000
 local smallRectangleShape = {-50, 20, 50, 20, 50, -15, -50, -15}
 
@@ -64,14 +64,13 @@ local buttonMenu
 -- * music
 local bgMusic
 
-
 local function onPressButtonMenu(event)
     physics.pause()
     -- Fermo i timer attivi quando il pulsante di menu viene premuto
-    if timeLeft>0 then
+    if timeLeft > 0 then
         timer.pause(timerTimeLeft)
     end
-    if timeLeft>5 then
+    if timeLeft > 5 then
         timer.pause(timerHospital)
     end
     composer.showOverlay(
@@ -131,25 +130,13 @@ function scene:create(event)
 
     -- * barriere
     topBarrier = display.newRect(fg, 0, 0, display.contentWidth, 1)
-    physics.addBody(
-        topBarrier,
-        "static",
-        {bounce = 1, friction = 0, density = 1.5, filter = utils.barrierFilter()}
-    )
+    physics.addBody(topBarrier, "static", {bounce = 1, friction = 0, density = 1.5, filter = utils.barrierFilter()})
 
     leftBarrier = display.newRect(fg, 0, 0, 1, display.contentHeight)
-    physics.addBody(
-        leftBarrier,
-        "static",
-        {bounce = 1, friction = 0, density = 1.5, filter = utils.barrierFilter()}
-    )
+    physics.addBody(leftBarrier, "static", {bounce = 1, friction = 0, density = 1.5, filter = utils.barrierFilter()})
 
     rightBarrier = display.newRect(fg, 0, 0, 1, display.contentHeight)
-    physics.addBody(
-        rightBarrier,
-        "static",
-        {bounce = 1, friction = 0, density = 1.5, filter = utils.barrierFilter()}
-    )
+    physics.addBody(rightBarrier, "static", {bounce = 1, friction = 0, density = 1.5, filter = utils.barrierFilter()})
 
     -- * elementi di gioco
 
@@ -162,7 +149,7 @@ function scene:create(event)
     hospital.name = "hospital"
     hospital.sound = audio.loadSound("sounds/hospital.wav")
     physics.addBody(hospital, "static", {isSensor = true, filter = utils.bmFilter()})
-    
+
     -- * inizializzazione persone
     local squareShape = {-70, 50, 70, 50, 70, -50, -70, -50}
 
@@ -181,11 +168,11 @@ function scene:create(event)
     -- * inizializzazione maschera
     maskOutline = graphics.newOutline(1, "img/mask.png")
     mask = display.newImageRect(fg, "img/mask.png", 161, 53)
-    
+
     -- Posizioni y per la maschera quando è piccola e quando è grande
     mask.yScaleUp = 1637
     mask.yScaleDown = 1657
-    
+
     if gameMode == "tilt" then
         mask.width = 161
         mask.height = 53
@@ -193,15 +180,15 @@ function scene:create(event)
             mask,
             "static",
             {outline = maskOutline, bounce = 1, density = 1.5, friction = 0, filter = utils.maskFilter()}
-        ) 
+        )
     elseif gameMode == "touch" then
         mask.width = mask.width / 100 * 60
         mask.height = mask.height / 100 * 60
         physics.addBody(
-        mask,
-        "static",
-        {shape = smallRectangleShape, bounce = 1, friction = 0, density = 1.5, filter = utils.maskFilter()}
-    )
+            mask,
+            "static",
+            {shape = smallRectangleShape, bounce = 1, friction = 0, density = 1.5, filter = utils.maskFilter()}
+        )
     end
     mask.gravityScale = 500
     mask.isFixedRotation = true
@@ -291,13 +278,13 @@ end
 -- Allo scadere del tempo fermo la musica e faccio partire le animazioni prima di terminare definitivamente il gioco
 local function gameEnd()
     physics.pause()
-            if timeLeft == 0 then
-                transition.to(textTimeLeft, {time = 700, size = 500, y = display.contentCenterY})
-            end
-            timer.performWithDelay(1000, updateEndScore)
+    if timeLeft == 0 then
+        transition.to(textTimeLeft, {time = 700, size = 500, y = display.contentCenterY})
+    end
+    timer.performWithDelay(1000, updateEndScore)
 
-            audio.fadeOut({channel = 1, time = 5000})
-            timer.performWithDelay(2500, handleGameEnd)
+    audio.fadeOut({channel = 1, time = 5000})
+    timer.performWithDelay(2500, handleGameEnd)
 end
 
 -- Ad ogni secondo aggiono il tempo rimanente e controllo che il timer non sia a 0. Se non ci sono persone infette aggiungo un +1
@@ -353,10 +340,10 @@ local function scaleUp()
         {outline = maskOutline, bounce = 1, density = 1.5, friction = 0, filter = utils.maskFilter()}
     )
     local vx, vy = ball:getLinearVelocity()
-    local Fx = moduleForce * math.sin( math.atan( vx/vy ) )
-    local Fy = moduleForce * math.cos( math.atan( vx/vy ) )
-    ball:setLinearVelocity(0,0);
-    ball:applyForce(-Fx, -Fy, ball.x, ball.y);
+    local Fx = moduleForce * math.sin(math.atan(vx / vy))
+    local Fy = moduleForce * math.cos(math.atan(vx / vy))
+    ball:setLinearVelocity(0, 0)
+    ball:applyForce(-Fx, -Fy, ball.x, ball.y)
 end
 
 -- Si occupa di rimpicciolire la maschera
@@ -371,10 +358,10 @@ local function scaleDown()
         {shape = smallRectangleShape, bounce = 1, friction = 0, density = 1.5, filter = utils.maskFilter()}
     )
     local vx, vy = ball:getLinearVelocity()
-    local Fx = moduleForce*2 * math.sin( math.atan( vx/vy ) )
-    local Fy = moduleForce*2 * math.cos( math.atan( vx/vy ) )
-    ball:setLinearVelocity(0,0);
-    ball:applyForce(Fx, Fy, ball.x, ball.y);
+    local Fx = moduleForce * 2 * math.sin(math.atan(vx / vy))
+    local Fy = moduleForce * 2 * math.cos(math.atan(vx / vy))
+    ball:setLinearVelocity(0, 0)
+    ball:applyForce(Fx, Fy, ball.x, ball.y)
 end
 
 -- Faccio partire la fisica, il virus e i timer
@@ -383,7 +370,7 @@ local function startGame()
     if gameMode == "tilt" then
         ball:applyForce(18000, 18000, ball.x, ball.y)
     elseif gameMode == "touch" then
-        ball:applyForce(18000*2, 18000*2, ball.x, ball.y)
+        ball:applyForce(18000 * 2, 18000 * 2, ball.x, ball.y)
     end
     -- Ad ogni secondo toglie un secondo dal tempo mancante
     timerTimeLeft = timer.performWithDelay(1000, updateTime, timeLeft)
@@ -431,7 +418,7 @@ local function onLocalCollisionFace(self, event)
         end
     elseif (event.phase == "ended") then
         if currentInfected == 1 and mask.y == mask.yScaleDown then
-        scaleUpMask = true
+            scaleUpMask = true
         end
     end
 end
@@ -477,7 +464,7 @@ local function sensorCollisionHeart(self, event)
         transition.to(textPoints, {time = 1000, alpha = 0})
         if isMusicOn then
             audio.play((self).sound, {channel = 2})
-        end      
+        end
         currentInfected = currentInfected - 1
         event.other:removeSelf()
         if currentInfected == 0 and mask.y == mask.yScaleUp then
@@ -518,7 +505,7 @@ local function onTilt(event)
         mask.x = mask.width / 3 * 2
     else
         mask.x = position
-    end 
+    end
 end
 
 -- Resume chiamato dall'overlay di menu
@@ -528,12 +515,10 @@ function scene:resumeGame()
     timer.resume(timerHospital)
 end
 
-
 function scene:show(event)
     local phase = event.phase
 
     if (phase == "will") then
-
         topBarrier.x = display.contentCenterX
         topBarrier.y = 0
         topBarrier.alpha = 0
@@ -562,7 +547,6 @@ function scene:show(event)
         mask.y = mask.yScaleDown
         if gameMode == "tilt" then
             mask.y = mask.yScaleUp
-            
         elseif gameMode == "touch" then
             mask.y = mask.yScaleDown
         else
@@ -581,15 +565,12 @@ function scene:show(event)
         textScore.y = textTimeLeft.y + 130
         textScore.alpha = 0.5
 
-
         buttonMenu.x = display.contentCenterX
         buttonMenu.y = 100
         audio.setVolume(0.1, {channel = 1})
         audio.setVolume(0.1, {channel = 2})
         audio.setVolume(0.1, {channel = 3})
-
     elseif (phase == "did") then
-
         if (gameMode == "touch") then
             Runtime:addEventListener("touch", onTouch)
         elseif (gameMode == "tilt") then
@@ -614,7 +595,6 @@ function scene:show(event)
         startGame()
     end
 end
-
 
 function scene:hide(event)
     local phase = event.phase
