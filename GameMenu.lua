@@ -40,7 +40,6 @@ local function onPressButtonRestart(event)
             time = 400
         }
     )
-    print("Button Play was pressed and released")
 end
 
 local function onPressButtonQuit(event)
@@ -51,7 +50,6 @@ local function onPressButtonQuit(event)
             time = 400
         }
     )
-    print("Button Play was pressed and released")
 end
 
 local function onPressButtonResume(event)

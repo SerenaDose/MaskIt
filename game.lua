@@ -75,7 +75,7 @@ local function onPressButtonMenu(event)
         timer.pause(timerHospital)
     end
     composer.showOverlay(
-        "GameMenu",
+        "gameMenu",
         {
             isModal = true,
             effect = "fromTop",
@@ -266,7 +266,7 @@ local function handleGameEnd()
     -- setto la variabile che poi verrà letta dalla scena di menu
     composer.setVariable("score", score)
     composer.showOverlay(
-        "GameMenu",
+        "gameMenu",
         {
             isModal = true,
             effect = "fade",
@@ -326,7 +326,7 @@ local function spawnBall(pos)
     local ball = display.newImageRect(fg, "img/virus.png", 80, 80)
     physics.addBody(
         ball,
-        "dybamic",
+        "dynamic",
         {radius = 40, bounce = ballBounce, density = ballDensity, friction = ballFriction, filter = utils.virusFilter()}
     )
     -- la pallina avrà la stessa x della persona
@@ -477,8 +477,7 @@ local function sensorCollisionHeart(self, event)
         transition.to(textPoints, {time = 1000, alpha = 0})
         if isMusicOn then
             audio.play((self).sound, {channel = 2})
-        end
-        
+        end      
         currentInfected = currentInfected - 1
         event.other:removeSelf()
         if currentInfected == 0 and mask.y == mask.yScaleUp then
@@ -500,14 +499,10 @@ local function onUpdate()
     if gameMode == "touch" then
         if scaleUpMask then
             scaleUp()
-            print("scaleUp")
             scaleUpMask = false
-            --scaled = false
         elseif scaleDownMask then
             scaleDown()
             scaleDownMask = false
-            --scaled = false
-            print("scaleDown")
         end
     end
 end

@@ -62,7 +62,7 @@ function M.getScores()
     if not file then
         print("File error: " .. errorString)
         local file, errorString = io.open(path, "w")
-        print("create new file")
+        print("creating new file")
         file:write("0 0 0")
         io.close(file)
     end
@@ -76,7 +76,6 @@ function M.getScores()
 
     table.sort(scores)
     for i = 1, 3 do
-        print(scores[i])
     end
     return scores
 end
@@ -116,7 +115,6 @@ end
 function M.saveSoundPreferences(isMmusicOn)
     local path = system.pathForFile("settings.txt", system.DocumentsDirectory)
     local file, errorString = io.open(path, "w")
-    print(isMmusicOn)
     file:write(isMmusicOn)
     io.close(file)
 end

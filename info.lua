@@ -18,7 +18,6 @@ local closeButtonSheet = graphics.newImageSheet("img/ui/button-close.png", utils
 
 local function onPressButtonClose(event)
     composer.hideOverlay("fade", 400)
-    print("Button was pressed and released")
 end
 
 function scene:create(event)
